@@ -14,14 +14,21 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
 
     switch(firstword) {
         case 0x00: 
-            if(code[1] == 0x0E) {
-                //CLS
-                //Clear the screen
-                std::cout << "CLS";
-            } else if(code[1] == 0xEE) {
-                //RTS
-                //Return from subroutine
-                std::cout << "RTS";
+            switch(code[1]) {
+                case 0xE0: {
+                    //00E0
+                    //CLS
+                    //Clear the screen
+                    std::cout << "CLS";
+                } 
+                break;
+                case 0xEE: {
+                    //00EE
+                    //RTS
+                    //Return from subroutine
+                    std::cout << "RTS";
+                }
+                break;
             }
         break;
         case 0x01: {

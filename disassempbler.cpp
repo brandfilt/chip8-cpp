@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
-#include <cstdint>
+#include <stdint.h>
+#include <fstream>
 
 void disassemble_chip8(uint8_t *codebuffer, int pc) {
     uint8_t *code = &codebuffer[pc];
@@ -184,23 +185,22 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
 }
 
 int main(int argc, char **argv) {
-    FILE *f = fopen(argv[1], "rb");
+    std::ifstream rom(argv[1], std::ios::in | std::ios::binary | std::ios::ate);
 
-    if(f == NULL) {
-        printf("error: Couldn't open %s\n", argv[1]);
-        exit(1);
+    if(!rom.is_open()) {
+        std::cout << "Couldn't open file!" << std::endl;
+        return 1;
     }
 
-    fseek(f, 0L, SEEK_END);
-    int fsize = ftell(f);
-    fseek(f, 0L, SEEK_SET);
+    long size = rom.tellg();
+    unsigned char *buffer =  new unsigned char[size+0x200];
 
-    unsigned char *buffer = (unsigned char*)malloc(fsize+0x200);
-    fread(buffer+0x200, fsize, 1, f);
-    fclose(f);
+    rom.seekg(0, std::ios::beg);
+    rom.read((char*)buffer+0x200, size);
+    rom.close();
 
     int pc = 0x200;
-    while(pc < (fsize+0x200)) {
+    while(pc < (size+0x200)) {
         disassemble_chip8(buffer, pc);
         pc += 2;
         printf("\n");

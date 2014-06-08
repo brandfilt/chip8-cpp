@@ -345,7 +345,7 @@ int main(int argc, char **argv) {
     while(pc < (size+0x200)) {
         disassemble_chip8(buffer, pc);
         pc += 2;
-        printf("\n");
+        std::cout << std::endl;
     }
 
     return 0;

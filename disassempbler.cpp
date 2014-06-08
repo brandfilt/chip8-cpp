@@ -165,6 +165,24 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
                         << std::setw(1) << static_cast<int>(regx);
                 }
                 break;
+                case 0x07: {
+                    //8XY7
+                    //SUBB. VX, VY
+                    //Substract VY from VX. VF is set to the mos significant bit of VX before shift.
+                    std::cout << "SUBB. V"
+                        << static_cast<int>(regx)
+                        << ", V"
+                        << static_cast<int>(regy);
+                }
+                break;
+                case 0x0e: {
+                    //8XYe
+                    //SHL. VX
+                    //Shifts VX left by one. VF is set to the value of the most significant bit of VX before shift.
+                    std::cout << "SHL. V"
+                        << static_cast<int>(regx);
+                }
+                break;
             }
         }
         break;

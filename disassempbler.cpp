@@ -73,7 +73,7 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
             //SKIP.EQ VX, VY
             //Skip the next instruction if VX equals VY
             uint8_t firstaddress = code[0] & 0x0F;
-            uint8_t secondaddress = code[1] & 0xF0;
+            uint8_t secondaddress = (code[1] & 0xF0) >> 4;
             std::cout << "SKIP.EQ V"
                 << std::setw(1) << static_cast<int>(firstaddress)
                 << ", V"
@@ -102,7 +102,7 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
             //8XYN have 9 different operations using two registers
             uint8_t operation = code[1] & 0x0F;
             uint8_t regx = code[0] & 0x0F;
-            uint8_t regy = code[1] & 0xF0;
+            uint8_t regy = (code[1] & 0xF0) >> 4;
             switch(operation) {
                 case 0x00: {
                     //MOV VX, VY
@@ -173,7 +173,7 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
             //SKIP.NQ VX, VY
             //Skip the next instruction if VX doesn't equal VY
             uint8_t firstaddress = code[0] & 0x0F;
-            uint8_t secondaddress = code[1] & 0xF0;
+            uint8_t secondaddress = (code[1] & 0xF0) >> 4;
             std::cout << "SKIP.NQ V"
                 << std::setw(1) << static_cast<int>(firstaddress)
                 << ", V"
@@ -220,7 +220,7 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
             //Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and height of N pixels starting from memory location I (index register).
             uint8_t height = code[1] & 0x0F;
             uint8_t regx = code[0] & 0x0F;
-            uint8_t regy = code[1] & 0xF0;
+            uint8_t regy = (code[1] & 0xF0) >> 4;
             std::cout << "SPRITE V"
                 << static_cast<int>(regx)
                 << " V"

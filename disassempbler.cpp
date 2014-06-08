@@ -162,6 +162,7 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
         }
         break;
         case 0x09: {
+            //9XY0
             //SKIP.NQ VX, VY
             //Skip the next instruction if VX doesn't equal VY
             uint8_t firstaddress = code[0] & 0x0F;
@@ -172,8 +173,9 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
                 << std::setw(1) << static_cast<int>(secondaddress);
         }
         case 0x0a: {
-            //MVI INNN
-            //Sets I to the adress of NNN
+            //ANNN
+            //MVI I, #$NNN
+            //Sets I (index register) to the adress of NNN
             uint8_t addresshi = code[0] & 0x0F;
             std::cout << "MVI I,#$" 
                 << std::setw(1) << static_cast<int>(addresshi)
@@ -181,6 +183,139 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
             
         }
         break;
+        case 0x0b: {
+            //BNNN
+            //JUMP $NNN(V0)
+            //Jumps to address NNN plus value o V0
+            uint8_t addresshi = code[0] & 0x0F;
+            std::cout << "JUMP $" 
+                << std::setw(1) << static_cast<int>(addresshi)
+                << std::setw(2) << static_cast<int>(code[1])
+                << "(V0)";
+
+        }
+        break;
+        case 0x0c: {
+            //CXNN
+            //RAND VX, #$NN
+            //Sets VX to a random value plus NN
+            uint8_t addresshi = code[0] & 0x0F;
+            std::cout << "RAND V" 
+                << std::setw(1) << static_cast<int>(addresshi)
+                << " #$"
+                << std::setw(2) << static_cast<int>(code[1]);
+
+        }
+        break;
+        case 0x0d: {
+            //DXYN
+            //SPRITE VX, VY, #$N
+            //Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and height of N pixels starting from memory location I (index register).
+            uint8_t height = code[1] & 0x0F;
+            uint8_t regx = code[0] & 0x0F;
+            uint8_t regy = code[1] & 0xF0;
+            std::cout << "SPRITE V"
+                << static_cast<int>(regx)
+                << " V"
+                << static_cast<int>(regy)
+                << ", #$"
+                << static_cast<int>(height);
+
+        }
+        break;
+        case 0x0e: {
+            //Two instructions for key input handling
+            uint8_t operation = code[1] & 0xFF;
+            uint8_t reg = code[1] & 0x0F;
+            switch(operation) {
+                case 0x9E:
+                    //EX9E
+                    //SKIP.KEY VX
+                    //Skip the next instruction if key stored in VX is pressed
+                    std::cout << "SKIP.KEY V"
+                        << static_cast<int>(reg);
+                break;
+                case 0xA1:
+                    //EXA1
+                    //SKIP.NOKEY VX
+                    //Skip the next instruction if key stored in VX is not pressed
+                    std::cout << "SKIP.NOKEY V"
+                        << static_cast<int>(reg);
+                break;
+            } 
+        }
+        break;
+        case 0x0f: {
+            uint8_t operation = code[1] & 0xFF;
+            uint8_t reg = code[0] & 0x0F;
+            switch(operation) {
+                case 0x07:
+                    //FX07
+                    //MOV VX, DELAY
+                    //Set VX to the value of the delay timer
+                    std::cout << "MOV V"
+                        << static_cast<int>(reg)
+                        << ", DELAY";
+                break;
+                case 0x0A:
+                    //FX07
+                    //WAITKEY VX
+                    //Wait for key stored in VX to be pressed
+                    std::cout << "WAITKEY V"
+                        << static_cast<int>(reg);
+                break;
+                case 0x15:
+                    //FX15
+                    //MOV DELAY, VX
+                    //Set delay timer to the value of VX
+                    std::cout << "MOV DELAY, V"
+                        << static_cast<int>(reg);
+                break;
+                case 0x18:
+                    //FX18
+                    //MOV SOUND, VX
+                    //Set sound timer to the value of VX
+                    std::cout << "MOV SOUND, V"
+                        << static_cast<int>(reg);
+                break;
+                case 0x1E:
+                    //FX1E
+                    //ADD I, VX
+                    //Add value of VX to I (index register)
+                    std::cout << "ADD I, V"
+                        << static_cast<int>(reg);
+                break;
+                case 0x29:
+                    //FX29
+                    //SPRITECHAR VX
+                    //Set I (index register) to the location of the sprite for character stored in VX
+                    std::cout << "SPRITECHAR V"
+                        << static_cast<int>(reg);
+                break;
+                case 0x33:
+                    //FX33
+                    //MOVBCD VX
+                    //Stores Binary-coded decimal representation of VX at I (index register)
+                    std::cout << "SPRITECHAR V"
+                        << static_cast<int>(reg);
+                break;
+                case 0x55:
+                    //FX55
+                    //MOVM (I), V0-VX
+                    //Stores V0 to VX in memory starting at I (index register)
+                    std::cout << "MOVM (I), V0-V"
+                        << static_cast<int>(reg);
+                break;
+                case 0x65:
+                    //FX65
+                    //MOVM V0-VX, (I)
+                    //Fills V0 to VX with values from memory starting at address I
+                    std::cout << "MOVM V0-V"
+                        << static_cast<int>(reg)
+                        << ", (I)";
+                break;
+            }
+        }
     }
 }
 

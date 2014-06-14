@@ -16,7 +16,6 @@ public:
 
         if(!rom.is_open()) {
             std::cout << "Couldn't open file!" << std::endl;
-            return 1;
         }
 
         int size = rom.tellg();
@@ -38,9 +37,10 @@ private:
     uint8_t     *screen;    //Same as memory[0xF00]
 };
 
-void emulate_chip8(uint8_t *codebuffer, int pc) {
-}
 
 int main(int argc, char **argv) {
+    chip8 vm;
+
+    vm.load_rom(argv[1]);
     return 0;
 }

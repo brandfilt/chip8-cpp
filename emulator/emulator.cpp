@@ -25,6 +25,22 @@ public:
         rom.read((char*)this->memory+0x200, size);
         rom.close();
     }
+
+    void emulate() {
+        uint8_t *op = &this->memory[this->PC];
+        
+        int highnib = (*op & 0xf0) >> 4;
+        switch(highnib) {
+            case 0x00:
+            break;
+            case 0x01: {
+                //JUMP $NNN
+                uint16_t target = ((code[0] & 0xf) << 8) | code[1];
+                state->PC = target;
+            }
+            break;
+        }
+    }
     
 private:
     uint8_t     V[16];  //Registers 0-F

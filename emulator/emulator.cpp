@@ -27,6 +27,7 @@ public:
     }
 
     void emulate() {
+        //Fetch next instruction
         uint8_t *op = &this->memory[this->PC];
         
         int highnib = (*op & 0xf0) >> 4;
@@ -35,8 +36,43 @@ public:
             break;
             case 0x01: {
                 //JUMP $NNN
+                //Jump to NNN
                 uint16_t target = ((code[0] & 0xf) << 8) | code[1];
-                state->PC = target;
+                this->PC = target;
+            }
+            break;
+            case 0x02: {
+                //CALL $NNN
+                //Call subroutine at NNN
+
+                //Advance stack pointer
+                this->SP = -2;
+
+                //Store next instructions address to memory pointed by the stack pointer
+                memory[this->SP] = ((this->PC+2) & 0xff00) >> 8;
+                memory[this->SP+1] = ((this->PC+2) & 0x00ff);
+                
+                //Jump to subroutines address NNN
+                uint16_t target = ((code[0] & 0xf) << 8) | code[1];
+                this->PC = target;
+            }
+            break;
+            case 0x03: {
+                uint8_t reg = code[0] & 0xf;
+                if(this->V[reg] == code[1])
+                    this-PC += 2;
+                this->PC += 2;
+            }
+            break;
+            case 0x06: {
+                uint8_t reg = code[0] & 0xf;
+                this->V[reg] = code[1]
+                this->PC += 2;
+            }
+            break;
+            case 0x0a: {
+                this-I = ((code[0] & 0xf) << 8) | code[1];
+                this->PC += 2;
             }
             break;
         }

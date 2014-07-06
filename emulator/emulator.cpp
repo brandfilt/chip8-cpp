@@ -37,7 +37,7 @@ public:
             case 0x01: {
                 //JUMP $NNN
                 //Jump to NNN
-                uint16_t target = ((code[0] & 0xf) << 8) | code[1];
+                uint16_t target = ((op[0] & 0xf) << 8) | op[1];
                 this->PC = target;
             }
             break;
@@ -53,25 +53,72 @@ public:
                 memory[this->SP+1] = ((this->PC+2) & 0x00ff);
                 
                 //Jump to subroutines address NNN
-                uint16_t target = ((code[0] & 0xf) << 8) | code[1];
+                uint16_t target = ((op[0] & 0xf) << 8) | op[1];
                 this->PC = target;
             }
             break;
             case 0x03: {
-                uint8_t reg = code[0] & 0xf;
-                if(this->V[reg] == code[1])
-                    this-PC += 2;
+                uint8_t reg = op[0] & 0x0f;
+                if(this->V[reg] == op[1])
+                    this->PC += 2;
+                this->PC += 2;
+            }
+            break;
+            case 0x04: {
+                uint8_t reg = op[0] & 0x0f;
+                if(this->V[reg] != op[1])
+                    this->PC += 2;
+                this->PC += 2;
+            }
+            break;
+            case 0x05: {
+                uint8_t reg1 = op[0] & 0x0f;
+                uint8_t reg2 = (op[1] & 0xf0) >> 4;
+                if(this->V[reg1] == this->V[reg2])
+                    this->PC += 2;
                 this->PC += 2;
             }
             break;
             case 0x06: {
-                uint8_t reg = code[0] & 0xf;
-                this->V[reg] = code[1]
+                uint8_t reg = op[0] & 0x0f;
+                this->V[reg] = op[1];
                 this->PC += 2;
             }
             break;
+            case 0x07: {
+                uint8_t reg = op[0] & 0x0f;
+                this->V[reg] += op[1];
+                this->PC += 2;
+            }
+            break;
+            case 0x09: {
+                uint8_t reg1 = op[0] & 0x0f;
+                uint8_t reg2 = (op[1] & 0xf0) >> 4;
+                if(this->V[reg1] != this->V[reg2])
+                    this->PC += 2;
+                this->PC += 2;
+            }
             case 0x0a: {
-                this-I = ((code[0] & 0xf) << 8) | code[1];
+                this->I = ((op[0] & 0xf) << 8) | op[1];
+                this->PC += 2;
+            }
+            break;
+            case 0x0f: {
+                int reg = op[0] & 0xf;
+                switch(op[1]) {
+                    case 0x33: {    
+                        uint8_t ones, tens, hundreds;
+                        uint8_t value = this->V[reg];
+                        ones = value % 10;
+                        value /= 10;
+                        tens = value % 10;
+                        hundreds = value / 10;
+                        this->memory[this->I] = hundreds;
+                        this->memory[this->I+1] = tens;
+                        this->memory[this->I+2] = ones;
+                    }
+                    break;
+                }
                 this->PC += 2;
             }
             break;

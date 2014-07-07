@@ -91,6 +91,56 @@ public:
                 this->PC += 2;
             }
             break;
+            case 0x08: {
+                uint8_t command = op[1] & 0x0f;
+                uint8_t reg1 = op[0] & 0x0f;
+                uint8_t reg2 = (op[1] & 0xf0) >> 4;
+
+                switch(command) {
+                    case 0x1: {
+                        this->V[reg1] |= this->V[reg2];
+                    }
+                    break;
+                    case 0x2: {
+                        this->V[reg1] &= this->V[reg2];
+                    }
+                    break;
+                    case 0x3: {
+                        this->V[reg1] ^= this->V[reg2];
+                    }
+                    break;
+                    case 0x4: {
+                        uint16_t result = this->V[reg1] + this->V[reg2];
+                        this->V[0xf] = (result & 0xff00) ? 1 : 0;
+                        this->V[reg1] = result & 0xff;
+                    }
+                    break;
+                    case 0x5: {
+                        uint8_t result = this->V[reg1] - this->V[reg2];
+                        this->V[0xf] = (result > 0) ? 1 : 0;
+                        this->V[reg1] = result;
+                    }
+                    break;
+                    case 0x6: {
+                        this->V[0xf] = this->V[reg1] & 0x1;
+                        this->V[reg1] = this->V[reg1] >> 1;
+                    }
+                    break;
+                    case 0x7: {
+                        uint8_t result = this->V[reg2] - this->V[reg1];
+                        this->V[0xf] = (result > 0) ? 1 : 0;
+                        this->V[reg1] = result;
+                    }
+                    break;
+                    case 0xe: {
+                        this->V[0xf] = (0x80 == (this->V[reg1] & 0x80));
+                        this->V[reg1] = this->V[reg1] << 1;
+                    }
+                    break;
+                }
+                this->PC += 2;
+            }
+            break;
             case 0x09: {
                 uint8_t reg1 = op[0] & 0x0f;
                 uint8_t reg2 = (op[1] & 0xf0) >> 4;

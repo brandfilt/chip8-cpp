@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <stdint.h>
 #include <fstream>
+#include <stdlib.h>
 
 class chip8 {
 public:
@@ -142,7 +143,7 @@ public:
             }
             break;
             case 0x09: {
-                uint8_t reg1 = op[0] & 0x0f;
+                uint8_t reg1 = op[0] & 0xf;
                 uint8_t reg2 = (op[1] & 0xf0) >> 4;
                 if(this->V[reg1] != this->V[reg2])
                     this->PC += 2;
@@ -151,6 +152,25 @@ public:
             case 0x0a: {
                 this->I = ((op[0] & 0xf) << 8) | op[1];
                 this->PC += 2;
+            }
+            break;
+            case 0x0b: {
+                uint16_t num = ((op[0] & 0xf) << 8) | op[1];
+                this->PC = this->V[0] + num;
+            }
+            break;
+            case 0x0c: {
+                uint8_t reg = op[0] & 0xf;
+                uint8_t num = op[1];
+                this->V[reg] = (rand() % 256) + num;
+            }
+            break;
+            case 0x0d: {
+                //TODO: Drawing sprites
+            }
+            break;
+            case 0x0e: {
+                //TODO: Keyboard handling
             }
             break;
             case 0x0f: {

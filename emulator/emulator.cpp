@@ -29,7 +29,7 @@ public:
   }
 
   void emulate() {
-    // Fetch next instruction
+    // Fetch first 8 bits of next instruction
     uint8_t *op = &this->memory[this->PC];
 
     int highnib = (*op & 0xf0) >> 4;

@@ -156,6 +156,18 @@ public:
     case 0x0f: {
       int reg = op[0] & 0xf;
       switch (op[1]) {
+      case 0x07: {
+        this->V[reg] = this->delay;
+      } break;
+      case 0x15: {
+        this->delay = this->V[reg];
+      } break;
+      case 0x18: {
+        this->sound = this->V[reg];
+      } break;
+      case 0x1e: {
+        this->I = this->V[reg] + this->I;
+      } break;
       case 0x33: {
         uint8_t ones, tens, hundreds;
         uint8_t value = this->V[reg];

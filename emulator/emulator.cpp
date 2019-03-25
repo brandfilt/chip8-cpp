@@ -159,6 +159,9 @@ public:
       case 0x07: {
         this->V[reg] = this->delay;
       } break;
+      case 0x0A:
+        // Not implemented yet
+        break;
       case 0x15: {
         this->delay = this->V[reg];
       } break;
@@ -168,7 +171,14 @@ public:
       case 0x1e: {
         this->I = this->V[reg] + this->I;
       } break;
+      case 0x29:
+        // Not implemented yet
+        break;
       case 0x33: {
+        /* Fx33 - LD B, Vx
+         * Store Binary Coded Decimal representation of Vx in memory
+         * locations I, I+1 and I+2.
+         */
         uint8_t ones, tens, hundreds;
         uint8_t value = this->V[reg];
         ones = value % 10;
@@ -178,6 +188,20 @@ public:
         this->memory[this->I] = hundreds;
         this->memory[this->I + 1] = tens;
         this->memory[this->I + 2] = ones;
+      } break;
+      case 0x55: {
+        /* Fx55 - LD [I], Vx
+         * Store registers V0 to Vx in memory starting at location I.
+         */
+        for (auto i = 0; i < reg; i++)
+          this->memory[this->I + i] = this->V[reg + i];
+      } break;
+      case 0x65: {
+        /* Fx65 - LD Vx, [I]
+         * Read registers V0 to Vx from memory starting at location I.
+         */
+        for (auto i = 0; i < reg; i++)
+          this->V[reg + i] = this->memory[this->I + i];
       } break;
       }
       this->PC += 2;

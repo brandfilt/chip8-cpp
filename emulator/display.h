@@ -12,6 +12,7 @@ class Display {
 public:
   Display() {}
   ~Display() {
+    SDL_Log("DESTROY\n");
     SDL_GL_DeleteContext(m_glcontext);
     SDL_DestroyWindow(m_window);
     SDL_Quit();
@@ -25,14 +26,17 @@ public:
     }
 
     m_window =
-        SDL_CreateWindow("Chip8", SDL_WINDOWPOS_UNDEFINED,
-                         SDL_WINDOWPOS_UNDEFINED, 64, 32, SDL_WINDOW_OPENGL);
+        SDL_CreateWindow("Chip8", 0,
+                         0, 640, 320, SDL_WINDOW_SHOWN);
+
+    if (m_window == nullptr)
+      return 1;
 
     m_glcontext = SDL_GL_CreateContext(m_window);
     return 0;
   }
 
-  void update(const uint8_t &screen);
+  void update(const uint8_t &screen) {}
 
 private:
   SDL_Window *m_window = nullptr;

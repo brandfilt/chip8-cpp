@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <SDL.h>
+
 #include "display.h"
 
 class Chip8 {
@@ -20,6 +22,8 @@ public:
 
     if (!rom.is_open()) {
       std::cout << "Couldn't open file!" << std::endl;
+      m_ready = false;
+      return;
     }
 
     int size = rom.tellg();
@@ -28,9 +32,13 @@ public:
     rom.seekg(0, std::ios::beg);
     rom.read((char *)m_memory + 0x200, size);
     rom.close();
+
+    m_ready = true;
   }
 
   void emulate() {
+    if (!m_ready)
+      return;
     // Fetch first 8 bits of next instruction
     uint8_t *op = &m_memory[m_PC];
 
@@ -148,6 +156,7 @@ public:
       uint8_t reg = op[0] & 0xf;
       uint8_t num = op[1];
       m_V[reg] = (rand() % 256) + num;
+      m_PC += 2;
     } break;
     case 0x0d: {
       // TODO: Drawing sprites
@@ -160,6 +169,7 @@ public:
       switch (op[1]) {
       case 0x07: {
         m_V[reg] = m_delay;
+        m_PC += 2;
       } break;
       case 0x0A:
         // Not implemented yet
@@ -220,11 +230,31 @@ private:
   uint8_t m_sound; // Sound timer
   uint8_t *m_memory;
   uint8_t *m_screen; // Same as memory[0xF00]
+
+  bool m_ready = false;
 };
 
 int main(int argc, char **argv) {
   Chip8 vm;
   vm.load_rom(argv[1]);
+
+  Display display;
+  int ret = display.init();
+
+  std::cout << ret << std::endl;
+
+  bool quitting = false;
+  while (!quitting) {
+    vm.emulate();
+
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+      if (event.type == SDL_QUIT)
+        quitting = true;
+    }
+
+    SDL_Delay(2);
+  }
 
   return 0;
 }

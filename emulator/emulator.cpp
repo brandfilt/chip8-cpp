@@ -7,6 +7,8 @@
 #include <SDL.h>
 
 #include "display.h"
+#include "keyboard.h"
+
 
 class Chip8 {
 public:
@@ -34,6 +36,10 @@ public:
     rom.close();
 
     m_ready = true;
+  }
+
+  void init() {
+    int ret = m_display.init();
   }
 
   void emulate() {
@@ -232,16 +238,15 @@ private:
   uint8_t *m_screen; // Same as memory[0xF00]
 
   bool m_ready = false;
+
+  Display m_display;
+
 };
 
 int main(int argc, char **argv) {
   Chip8 vm;
+  vm.init();
   vm.load_rom(argv[1]);
-
-  Display display;
-  int ret = display.init();
-
-  std::cout << ret << std::endl;
 
   bool quitting = false;
   while (!quitting) {

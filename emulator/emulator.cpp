@@ -165,7 +165,6 @@ public:
       // TODO: Drawing sprites
     } break;
     case 0x0e: {
-      // TODO: Keyboard handling
       int reg = op[0] & 0xf;
       switch (op[1]) {
       case 0x9e: {

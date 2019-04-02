@@ -240,7 +240,7 @@ private:
   bool m_ready = false;
 
   Display m_display;
-
+  Keyboard m_keyboard;
 };
 
 int main(int argc, char **argv) {

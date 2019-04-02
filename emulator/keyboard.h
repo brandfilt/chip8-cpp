@@ -10,15 +10,12 @@ public:
   Keyboard() {}
   bool isPressed(const uint8_t &key) const { return m_pressed.count(key) == 1; }
 
-  void waitKeyPress(const uint8_t &key) const {
+  uint8_t waitKeyPress() const {
     SDL_Event event;
     while (true) {
-      while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_KEYDOWN) {
-          uint8_t keysym = event.key.keysym.sym;
-          if (keysym == key)
-            return;
-        }
+      SDL_PollEvent(&event);
+      if (event.type == SDL_KEYDOWN) {
+        return event.key.keysym.sym;
       }
     }
   }

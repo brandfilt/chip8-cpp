@@ -9,7 +9,6 @@
 #include "display.h"
 #include "keyboard.h"
 
-
 class Chip8 {
 public:
   Chip8() {
@@ -38,9 +37,7 @@ public:
     m_ready = true;
   }
 
-  void init() {
-    int ret = m_display.init();
-  }
+  void init() { int ret = m_display.init(); }
 
   void emulate() {
     if (!m_ready)
@@ -169,6 +166,25 @@ public:
     } break;
     case 0x0e: {
       // TODO: Keyboard handling
+      int reg = op[0] & 0xf;
+      switch (op[1]) {
+      case 0x9e: {
+        // Ex9E - SKP Vx
+        // Skip next instruction if key stored in Vx is pressed
+        uint8_t key = m_V[reg];
+        // Add 2 to program counter to skip next instruction
+        if (m_keyboard.isPressed(key))
+          m_PC += 2;
+      } break;
+      case 0xa1: {
+        // ExA1 - SKMP Vx
+        // Skip next instruction if key stored in Vx is not pressed
+        uint8_t key = m_V[reg];
+        // Add 2 to program counter to skip next instruction
+        if (!m_keyboard.isPressed(key))
+          m_PC += 2;
+      } break;
+      }
     } break;
     case 0x0f: {
       int reg = op[0] & 0xf;
@@ -177,9 +193,12 @@ public:
         m_V[reg] = m_delay;
         m_PC += 2;
       } break;
-      case 0x0A:
-        // Not implemented yet
-        break;
+      case 0x0A: {
+        // Fx0A - LD Vx, K
+        // Wait for key press, store value of the key in Vx
+        uint8_t key = m_keyboard.waitKeyPress();
+        m_V[reg] = key;
+      } break;
       case 0x15: {
         m_delay = m_V[reg];
       } break;

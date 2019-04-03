@@ -25,7 +25,9 @@ public:
       return 1;
     }
 
-    SDL_CreateWindowAndRenderer(64, 32, SDL_WINDOW_OPENGL, &m_window, &m_renderer);
+    SDL_CreateWindowAndRenderer(640, 320, SDL_WINDOW_OPENGL, &m_window,
+                                &m_renderer);
+    SDL_RenderSetLogicalSize(m_renderer, 64, 32);
 
     if (m_window == nullptr)
       return 1;

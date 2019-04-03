@@ -25,9 +25,7 @@ public:
       return 1;
     }
 
-    m_window =
-        SDL_CreateWindow("Chip8", 0,
-                         0, 640, 320, SDL_WINDOW_SHOWN);
+    SDL_CreateWindowAndRenderer(64, 32, SDL_WINDOW_OPENGL, &m_window, &m_renderer);
 
     if (m_window == nullptr)
       return 1;
@@ -36,10 +34,29 @@ public:
     return 0;
   }
 
-  void update(const uint8_t &screen) {}
+  void update(uint8_t *screen) {
+    SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0);
+    SDL_RenderClear(m_renderer);
+    SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
+    for (auto i = 0; i < 256; i++) {
+      uint8_t screenByte = screen[i];
+      for (auto a = 0; a < 8; a++) {
+        int bit = i * 8 + a;
+        int y = bit / 64;
+        int x = bit - y;
+        if (screenByte & 0x01)
+          SDL_RenderDrawPoint(m_renderer, x, y);
+
+        screenByte = screenByte >> 1;
+      }
+    }
+
+    SDL_RenderPresent(m_renderer);
+  }
 
 private:
   SDL_Window *m_window = nullptr;
+  SDL_Renderer *m_renderer = nullptr;
   SDL_GLContext m_glcontext;
 };
 

@@ -4,6 +4,9 @@
 #include <SDL.h>
 #include <SDL_opengl.h>
 
+const uint8_t SCREEN_WIDTH = 64;
+const uint8_t SCREEN_HEIGHT = 32;
+
 /* Display handles drawing the Chip8 screen contents.
  * The actual screen data is stored in emulator memory
  * and it's passed to the update method.
@@ -40,16 +43,17 @@ public:
     SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0);
     SDL_RenderClear(m_renderer);
     SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
-    for (auto i = 0; i < 256; i++) {
-      uint8_t screenByte = screen[i];
+    int byte_count = SCREEN_WIDTH * SCREEN_HEIGHT / 8;
+    for (auto i = 0; i < byte_count; i++) {
+      uint8_t screen_byte = screen[i];
       for (auto a = 0; a < 8; a++) {
         int bit = i * 8 + a;
-        int y = bit / 64;
-        int x = bit - y;
-        if (screenByte & 0x01)
+        int y = bit / SCREEN_WIDTH;
+        int x = bit - y * SCREEN_WIDTH;
+        if (screen_byte & 0x01)
           SDL_RenderDrawPoint(m_renderer, x, y);
 
-        screenByte = screenByte >> 1;
+        screen_byte = screen_byte >> 1;
       }
     }
 

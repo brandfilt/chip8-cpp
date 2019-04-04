@@ -22,14 +22,14 @@ public:
 
   void pollEvents() {
     SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-      if (event.type == SDL_KEYDOWN) {
-        uint8_t keysym = event.key.keysym.sym;
-        m_pressed.insert(keysym);
-      } else if (event.type == SDL_KEYUP) {
-        uint8_t keysym = event.key.keysym.sym;
-        m_pressed.erase(keysym);
-      }
+    SDL_PollEvent(&event);
+    if (event.type == SDL_KEYDOWN) {
+      uint8_t keysym = event.key.keysym.sym;
+      m_pressed.insert(keysym);
+    }
+    else if (event.type == SDL_KEYUP) {
+      uint8_t keysym = event.key.keysym.sym;
+      m_pressed.erase(keysym);
     }
   }
 

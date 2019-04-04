@@ -13,6 +13,7 @@ class Chip8 {
 public:
   Chip8() {
     m_memory = new unsigned char[1024 * 4 + 0x200]; // 4K memory reserved
+    m_screen = &m_memory[0xF00];
     m_SP = 0xfa0;
     m_PC = 0x200; // Programs are loaded at 0x200
   }
@@ -35,6 +36,23 @@ public:
     rom.close();
 
     m_ready = true;
+  }
+
+  void run() {
+    bool quitting = false;
+    while (!quitting) {
+      emulate();
+      m_display.update(m_screen);
+      m_keyboard.pollEvents();
+
+      SDL_Event event;
+      while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_QUIT)
+          quitting = true;
+      }
+
+      SDL_Delay(2);
+    }
   }
 
   void init() { int ret = m_display.init(); }
@@ -162,7 +180,13 @@ public:
       m_PC += 2;
     } break;
     case 0x0d: {
-      // TODO: Drawing sprites
+      uint8_t x = op[0] & 0x0f;
+      uint8_t y = (op[1] >> 8) & 0x0f;
+      uint8_t n = op[1] & 0x0f;
+
+      for (auto i = 0; i < n; i++) {
+      }
+
     } break;
     case 0x0e: {
       int reg = op[0] & 0xf;
@@ -265,19 +289,7 @@ int main(int argc, char **argv) {
   Chip8 vm;
   vm.init();
   vm.load_rom(argv[1]);
-
-  bool quitting = false;
-  while (!quitting) {
-    vm.emulate();
-
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-      if (event.type == SDL_QUIT)
-        quitting = true;
-    }
-
-    SDL_Delay(2);
-  }
+  vm.run();
 
   return 0;
 }

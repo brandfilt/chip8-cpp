@@ -1,3 +1,4 @@
 *.o
 disassembler/disassembler
+assembler/assembler
 emulator/emulator

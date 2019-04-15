@@ -5,15 +5,20 @@
 
 void disassemble_chip8(uint8_t *codebuffer, int pc) {
   uint8_t *code = &codebuffer[pc];
-  uint8_t firstword = (code[0] >> 4);
+
+  uint8_t firstbyte = code[0];
+  uint8_t lastbyte = code[1];
+
+  uint8_t firstword = (firstbyte >> 4);
 
   std::cout << std::hex << std::setfill('0') << std::setw(4) << pc << " "
-            << std::setw(2) << static_cast<int>(code[0]) << " " << std::setw(2)
-            << static_cast<int>(code[1]) << " ";
+            << std::setw(2) << static_cast<int>(firstbyte) << " " << std::setw(2)
+            << static_cast<int>(lastbyte) << " ";
+
 
   switch (firstword) {
   case 0x00:
-    switch (code[1]) {
+    switch (lastbyte) {
     case 0xE0: {
       // 00E0
       // CLS
@@ -31,58 +36,58 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
   case 0x01: {
     // JUMP $NNN
     // Jump to address NNN
-    uint8_t addresshi = code[0] & 0x0F;
+    uint8_t addresshi = firstbyte & 0x0F;
     std::cout << "JUMP #$" << std::setw(1) << static_cast<int>(addresshi)
-              << std::setw(2) << static_cast<int>(code[1]);
+              << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x02: {
     // CALL $NNN
     // Jump to subroutine at NNN
-    uint8_t addresshi = code[0] & 0x0F;
+    uint8_t addresshi = firstbyte & 0x0F;
     std::cout << "CALL #$" << std::setw(1) << static_cast<int>(addresshi)
-              << std::setw(2) << static_cast<int>(code[1]);
+              << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x03: {
     // SKIP.EQ VX, #$NN
     // Skip the next instruction if VX equals NN
-    uint8_t addresshi = code[0] & 0x0F;
+    uint8_t addresshi = firstbyte & 0x0F;
     std::cout << "SKIP.EQ V" << std::setw(1) << static_cast<int>(addresshi)
-              << ", #$" << std::setw(2) << static_cast<int>(code[1]);
+              << ", #$" << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x04: {
     // SKIP.NQ VX, #$NN
     // Skip the next instruction if VX doesn't equal NN
-    uint8_t addresshi = code[0] & 0x0F;
+    uint8_t addresshi = firstbyte & 0x0F;
     std::cout << "SKIP.NQ V" << std::setw(1) << static_cast<int>(addresshi)
-              << ", #$" << std::setw(2) << static_cast<int>(code[1]);
+              << ", #$" << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x05: {
     // SKIP.EQ VX, VY
     // Skip the next instruction if VX equals VY
-    uint8_t firstaddress = code[0] & 0x0F;
-    uint8_t secondaddress = (code[1] & 0xF0) >> 4;
+    uint8_t firstaddress = firstbyte & 0x0F;
+    uint8_t secondaddress = (lastbyte & 0xF0) >> 4;
     std::cout << "SKIP.EQ V" << std::setw(1) << static_cast<int>(firstaddress)
               << ", V" << std::setw(1) << static_cast<int>(secondaddress);
   } break;
   case 0x06: {
     // MVI VX,NN
     // Sets register VX to NN
-    uint8_t reg = code[0] & 0x0F;
+    uint8_t reg = firstbyte & 0x0F;
     std::cout << "MVI V" << std::setw(1) << static_cast<int>(reg) << ",#$"
-              << std::setw(2) << static_cast<int>(code[1]);
+              << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x07: {
     // ADD VX, #$NN
     // Add NN to value in register VX
-    uint8_t reg = code[0] & 0x0F;
+    uint8_t reg = firstbyte & 0x0F;
     std::cout << "ADD V" << std::setw(1) << static_cast<int>(reg) << ",#$"
-              << std::setw(2) << static_cast<int>(code[1]);
+              << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x08: {
     // 8XYN have 9 different operations using two registers
-    uint8_t operation = code[1] & 0x0F;
-    uint8_t regx = code[0] & 0x0F;
-    uint8_t regy = (code[1] & 0xF0) >> 4;
+    uint8_t operation = lastbyte & 0x0F;
+    uint8_t regx = firstbyte & 0x0F;
+    uint8_t regy = (lastbyte & 0xF0) >> 4;
     switch (operation) {
     case 0x00: {
       // MOV VX, VY
@@ -149,8 +154,8 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
     // 9XY0
     // SKIP.NQ VX, VY
     // Skip the next instruction if VX doesn't equal VY
-    uint8_t firstaddress = code[0] & 0x0F;
-    uint8_t secondaddress = (code[1] & 0xF0) >> 4;
+    uint8_t firstaddress = firstbyte & 0x0F;
+    uint8_t secondaddress = (lastbyte & 0xF0) >> 4;
     std::cout << "SKIP.NQ V" << std::setw(1) << static_cast<int>(firstaddress)
               << ", V" << std::setw(1) << static_cast<int>(secondaddress);
   }
@@ -158,27 +163,27 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
     // ANNN
     // MVI I, #$NNN
     // Sets I (index register) to the adress of NNN
-    uint8_t addresshi = code[0] & 0x0F;
+    uint8_t addresshi = firstbyte & 0x0F;
     std::cout << "MVI I,#$" << std::setw(1) << static_cast<int>(addresshi)
-              << std::setw(2) << static_cast<int>(code[1]);
+              << std::setw(2) << static_cast<int>(lastbyte);
 
   } break;
   case 0x0b: {
     // BNNN
     // JUMP $NNN(V0)
     // Jumps to address NNN plus value o V0
-    uint8_t addresshi = code[0] & 0x0F;
+    uint8_t addresshi = firstbyte & 0x0F;
     std::cout << "JUMP $" << std::setw(1) << static_cast<int>(addresshi)
-              << std::setw(2) << static_cast<int>(code[1]) << "(V0)";
+              << std::setw(2) << static_cast<int>(lastbyte) << "(V0)";
 
   } break;
   case 0x0c: {
     // CXNN
     // RAND VX, #$NN
     // Sets VX to a random value plus NN
-    uint8_t addresshi = code[0] & 0x0F;
+    uint8_t addresshi = firstbyte & 0x0F;
     std::cout << "RAND V" << std::setw(1) << static_cast<int>(addresshi)
-              << " #$" << std::setw(2) << static_cast<int>(code[1]);
+              << " #$" << std::setw(2) << static_cast<int>(lastbyte);
 
   } break;
   case 0x0d: {
@@ -186,17 +191,17 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
     // SPRITE VX, VY, #$N
     // Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and
     // height of N pixels starting from memory location I (index register).
-    uint8_t height = code[1] & 0x0F;
-    uint8_t regx = code[0] & 0x0F;
-    uint8_t regy = (code[1] & 0xF0) >> 4;
+    uint8_t height = lastbyte & 0x0F;
+    uint8_t regx = firstbyte & 0x0F;
+    uint8_t regy = (lastbyte & 0xF0) >> 4;
     std::cout << "SPRITE V" << static_cast<int>(regx) << " V"
               << static_cast<int>(regy) << ", #$" << static_cast<int>(height);
 
   } break;
   case 0x0e: {
     // Two instructions for key input handling
-    uint8_t operation = code[1] & 0xFF;
-    uint8_t reg = code[1] & 0x0F;
+    uint8_t operation = lastbyte & 0xFF;
+    uint8_t reg = lastbyte & 0x0F;
     switch (operation) {
     case 0x9E:
       // EX9E
@@ -213,8 +218,8 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
     }
   } break;
   case 0x0f: {
-    uint8_t operation = code[1] & 0xFF;
-    uint8_t reg = code[0] & 0x0F;
+    uint8_t operation = lastbyte & 0xFF;
+    uint8_t reg = firstbyte & 0x0F;
     switch (operation) {
     case 0x07:
       // FX07

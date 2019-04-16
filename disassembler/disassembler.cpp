@@ -29,58 +29,58 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
       // 00EE
       // RTS
       // Return from subroutine
-      std::cout << "RTS";
+      std::cout << "RET";
     } break;
     }
     break;
   case 0x01: {
-    // JUMP $NNN
+    // JP addr
     // Jump to address NNN
     uint8_t addresshi = firstbyte & 0x0F;
-    std::cout << "JUMP #$" << std::setw(1) << static_cast<int>(addresshi)
+    std::cout << "JP #" << std::setw(1) << static_cast<int>(addresshi)
               << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x02: {
-    // CALL $NNN
+    // CALL addr
     // Jump to subroutine at NNN
     uint8_t addresshi = firstbyte & 0x0F;
-    std::cout << "CALL #$" << std::setw(1) << static_cast<int>(addresshi)
+    std::cout << "CALL #" << std::setw(1) << static_cast<int>(addresshi)
               << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x03: {
-    // SKIP.EQ VX, #$NN
+    // SE Vx, addr
     // Skip the next instruction if VX equals NN
     uint8_t addresshi = firstbyte & 0x0F;
-    std::cout << "SKIP.EQ V" << std::setw(1) << static_cast<int>(addresshi)
-              << ", #$" << std::setw(2) << static_cast<int>(lastbyte);
+    std::cout << "SE V" << std::setw(1) << static_cast<int>(addresshi)
+              << ", #" << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x04: {
-    // SKIP.NQ VX, #$NN
+    // SNE Vx, addr
     // Skip the next instruction if VX doesn't equal NN
     uint8_t addresshi = firstbyte & 0x0F;
-    std::cout << "SKIP.NQ V" << std::setw(1) << static_cast<int>(addresshi)
-              << ", #$" << std::setw(2) << static_cast<int>(lastbyte);
+    std::cout << "SNE V" << std::setw(1) << static_cast<int>(addresshi)
+              << ", #" << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x05: {
-    // SKIP.EQ VX, VY
+    // SE Vx, Vy
     // Skip the next instruction if VX equals VY
     uint8_t firstaddress = firstbyte & 0x0F;
     uint8_t secondaddress = (lastbyte & 0xF0) >> 4;
-    std::cout << "SKIP.EQ V" << std::setw(1) << static_cast<int>(firstaddress)
+    std::cout << "SE V" << std::setw(1) << static_cast<int>(firstaddress)
               << ", V" << std::setw(1) << static_cast<int>(secondaddress);
   } break;
   case 0x06: {
-    // MVI VX,NN
+    // LD Vx, addr
     // Sets register VX to NN
     uint8_t reg = firstbyte & 0x0F;
-    std::cout << "MVI V" << std::setw(1) << static_cast<int>(reg) << ",#$"
+    std::cout << "LD V" << std::setw(1) << static_cast<int>(reg) << ", #"
               << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x07: {
-    // ADD VX, #$NN
+    // ADD Vx, addr
     // Add NN to value in register VX
     uint8_t reg = firstbyte & 0x0F;
-    std::cout << "ADD V" << std::setw(1) << static_cast<int>(reg) << ",#$"
+    std::cout << "ADD V" << std::setw(1) << static_cast<int>(reg) << ", #"
               << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x08: {
@@ -90,112 +90,112 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
     uint8_t regy = (lastbyte & 0xF0) >> 4;
     switch (operation) {
     case 0x00: {
-      // MOV VX, VY
+      // LD Vx, Vy
       // Set VX to the value of VY
-      std::cout << "MOV V" << std::setw(1) << static_cast<int>(regx) << ", V"
+      std::cout << "LD V" << std::setw(1) << static_cast<int>(regx) << ", V"
                 << std::setw(1) << static_cast<int>(regy);
     } break;
     case 0x01: {
-      // OR VX, VY
+      // OR Vx, Vy
       // Set VX to VX OR VY
       std::cout << "OR V" << std::setw(1) << static_cast<int>(regx) << ", V"
                 << std::setw(1) << static_cast<int>(regy);
     } break;
     case 0x02: {
-      // AND VX, VY
+      // AND Vx, Vy
       // Set VX to VX AND VY
       std::cout << "AND V" << std::setw(1) << static_cast<int>(regx) << ", V"
                 << std::setw(1) << static_cast<int>(regy);
     } break;
     case 0x03: {
-      // XOR VX, VY
+      // XOR Vx, Vy
       // Set VX to VX XOR VY
       std::cout << "XOR V" << std::setw(1) << static_cast<int>(regx) << ", V"
                 << std::setw(1) << static_cast<int>(regy);
     } break;
     case 0x04: {
-      // ADD. VX, VY
+      // ADD Vx, Vy
       // Add VX to VY, VF will be set to 1 if there's a carry and to 0 if
       // there's not
-      std::cout << "ADD. V" << std::setw(1) << static_cast<int>(regx) << ", V"
+      std::cout << "ADD V" << std::setw(1) << static_cast<int>(regx) << ", V"
                 << std::setw(1) << static_cast<int>(regy);
     } break;
     case 0x05: {
-      // SUB. VX, VY
+      // SUB Vx, Vy
       // Substract VY from VX. VF is set to 0 if there's a borrow, and to 1 if
       // there's not.
-      std::cout << "SUB. V" << std::setw(1) << static_cast<int>(regx) << ", V"
+      std::cout << "SUB V" << std::setw(1) << static_cast<int>(regx) << ", V"
                 << std::setw(1) << static_cast<int>(regy);
     } break;
     case 0x06: {
-      // SHR. VX
+      // SHR Vx
       // Shift VX right by one. VF is set to the value of th least significant
       // bit of VX before the shift.
-      std::cout << "SHR. V" << std::setw(1) << static_cast<int>(regx);
+      std::cout << "SHR V" << std::setw(1) << static_cast<int>(regx);
     } break;
     case 0x07: {
       // 8XY7
-      // SUBB. VX, VY
+      // SUBN Vx, Vy
       // Substract VY from VX. VF is set to the mos significant bit of VX before
       // shift.
-      std::cout << "SUBB. V" << static_cast<int>(regx) << ", V"
+      std::cout << "SUBN V" << static_cast<int>(regx) << ", V"
                 << static_cast<int>(regy);
     } break;
     case 0x0e: {
       // 8XYe
-      // SHL. VX
+      // SHL Vx
       // Shifts VX left by one. VF is set to the value of the most significant
       // bit of VX before shift.
-      std::cout << "SHL. V" << static_cast<int>(regx);
+      std::cout << "SHL V" << static_cast<int>(regx);
     } break;
     }
   } break;
   case 0x09: {
     // 9XY0
-    // SKIP.NQ VX, VY
+    // SNE Vx, Vy
     // Skip the next instruction if VX doesn't equal VY
     uint8_t firstaddress = firstbyte & 0x0F;
     uint8_t secondaddress = (lastbyte & 0xF0) >> 4;
-    std::cout << "SKIP.NQ V" << std::setw(1) << static_cast<int>(firstaddress)
+    std::cout << "SNE V" << std::setw(1) << static_cast<int>(firstaddress)
               << ", V" << std::setw(1) << static_cast<int>(secondaddress);
   }
   case 0x0a: {
     // ANNN
-    // MVI I, #$NNN
+    // LD I, addr
     // Sets I (index register) to the adress of NNN
     uint8_t addresshi = firstbyte & 0x0F;
-    std::cout << "MVI I,#$" << std::setw(1) << static_cast<int>(addresshi)
+    std::cout << "LD I, #" << std::setw(1) << static_cast<int>(addresshi)
               << std::setw(2) << static_cast<int>(lastbyte);
 
   } break;
   case 0x0b: {
     // BNNN
-    // JUMP $NNN(V0)
+    // JP V0, addr
     // Jumps to address NNN plus value o V0
     uint8_t addresshi = firstbyte & 0x0F;
-    std::cout << "JUMP $" << std::setw(1) << static_cast<int>(addresshi)
-              << std::setw(2) << static_cast<int>(lastbyte) << "(V0)";
+    std::cout << "JP V0, " << std::setw(1) << static_cast<int>(addresshi)
+              << std::setw(2) << static_cast<int>(lastbyte);
 
   } break;
   case 0x0c: {
     // CXNN
-    // RAND VX, #$NN
+    // RND Vx, byte
     // Sets VX to a random value plus NN
     uint8_t addresshi = firstbyte & 0x0F;
-    std::cout << "RAND V" << std::setw(1) << static_cast<int>(addresshi)
-              << " #$" << std::setw(2) << static_cast<int>(lastbyte);
+    std::cout << "RND V" << std::setw(1) << static_cast<int>(addresshi)
+              << ", #" << std::setw(2) << static_cast<int>(lastbyte);
 
   } break;
   case 0x0d: {
     // DXYN
-    // SPRITE VX, VY, #$N
+    // DRW Vx, Vy, addr
     // Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and
     // height of N pixels starting from memory location I (index register).
     uint8_t height = lastbyte & 0x0F;
     uint8_t regx = firstbyte & 0x0F;
     uint8_t regy = (lastbyte & 0xF0) >> 4;
-    std::cout << "SPRITE V" << static_cast<int>(regx) << " V"
-              << static_cast<int>(regy) << ", #$" << static_cast<int>(height);
+    std::cout << "DRW V" << static_cast<int>(regx) << ", V"
+              << static_cast<int>(regy) << ", #" << static_cast<int>(height);
 
   } break;
   case 0x0e: {
@@ -205,15 +205,15 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
     switch (operation) {
     case 0x9E:
       // EX9E
-      // SKIP.KEY VX
+      // SKP Vx
       // Skip the next instruction if key stored in VX is pressed
-      std::cout << "SKIP.KEY V" << static_cast<int>(reg);
+      std::cout << "SKP V" << static_cast<int>(reg);
       break;
     case 0xA1:
       // EXA1
-      // SKIP.NOKEY VX
+      // SKNP Vx
       // Skip the next instruction if key stored in VX is not pressed
-      std::cout << "SKIP.NOKEY V" << static_cast<int>(reg);
+      std::cout << "SKNP V" << static_cast<int>(reg);
       break;
     }
   } break;
@@ -223,58 +223,58 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
     switch (operation) {
     case 0x07:
       // FX07
-      // MOV VX, DELAY
+      // LD Vx, DT
       // Set VX to the value of the delay timer
-      std::cout << "MOV V" << static_cast<int>(reg) << ", DELAY";
+      std::cout << "LD V" << static_cast<int>(reg) << ", DT";
       break;
     case 0x0A:
       // FX07
-      // WAITKEY VX
+      // LD Vx, K
       // Wait for key stored in VX to be pressed
-      std::cout << "WAITKEY V" << static_cast<int>(reg);
+      std::cout << "LD V" << static_cast<int>(reg) << ", K";
       break;
     case 0x15:
       // FX15
-      // MOV DELAY, VX
+      // LD DT, V
       // Set delay timer to the value of VX
-      std::cout << "MOV DELAY, V" << static_cast<int>(reg);
+      std::cout << "LD DT, V" << static_cast<int>(reg);
       break;
     case 0x18:
       // FX18
-      // MOV SOUND, VX
+      // LD ST, Vx
       // Set sound timer to the value of VX
-      std::cout << "MOV SOUND, V" << static_cast<int>(reg);
+      std::cout << "LD ST, V" << static_cast<int>(reg);
       break;
     case 0x1E:
       // FX1E
-      // ADD I, VX
+      // ADD I, Vx
       // Add value of VX to I (index register)
       std::cout << "ADD I, V" << static_cast<int>(reg);
       break;
     case 0x29:
       // FX29
-      // SPRITECHAR VX
+      // LD F, Vx
       // Set I (index register) to the location of the sprite for character
       // stored in VX
-      std::cout << "SPRITECHAR V" << static_cast<int>(reg);
+      std::cout << "LD F, V" << static_cast<int>(reg);
       break;
     case 0x33:
       // FX33
-      // MOVBCD VX
+      // LD B, Vx
       // Stores Binary-coded decimal representation of VX at I (index register)
-      std::cout << "SPRITECHAR V" << static_cast<int>(reg);
+      std::cout << "LD B, V" << static_cast<int>(reg);
       break;
     case 0x55:
       // FX55
-      // MOVM (I), V0-VX
+      // LD [I], Vx
       // Stores V0 to VX in memory starting at I (index register)
-      std::cout << "MOVM (I), V0-V" << static_cast<int>(reg);
+      std::cout << "LD [I], V" << static_cast<int>(reg);
       break;
     case 0x65:
       // FX65
-      // MOVM V0-VX, (I)
+      // LD Vx, [I]
       // Fills V0 to VX with values from memory starting at address I
-      std::cout << "MOVM V0-V" << static_cast<int>(reg) << ", (I)";
+      std::cout << "LD V" << static_cast<int>(reg) << ", [I]";
       break;
     }
   }

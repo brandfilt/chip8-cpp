@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <iterator>
 #include <regex>
 #include <stdint.h>
@@ -14,15 +15,33 @@ std::vector<std::string> split(const std::string &input,
   return {first, last};
 }
 
-uint16_t assemble_chip8(std::string &command) {
+uint16_t hex_literal_to_integer(const std::string hex_literal) {
+  std::stringstream string_stream;
+  string_stream << std::hex << hex_literal.substr(1, 3);
+
+  uint16_t value;
+  string_stream >> value;
+
+  return value;
+}
+
+uint16_t assemble_chip8(const std::string &command) {
   std::vector<std::string> tokens = split(command, "\\s+");
   std::string cmd = tokens[1];
 
-  std::cout << cmd << std::endl;
+  for (auto const &value : tokens) {
+    std::cout << "TOKEN: " << value << std::endl;
+  }
   if (cmd == "CLS") {
     return 0x00E0;
   } else if (cmd == "RET") {
     return 0x00EE;
+  } else if (cmd == "JP") {
+    uint16_t addr = hex_literal_to_integer(tokens[2]);
+    return (0x1000 | addr);
+  } else if (cmd == "CALL") {
+    uint16_t addr = hex_literal_to_integer(tokens[2]);
+    return (0x2000 | addr);
   }
 
   return 0x0000;
@@ -44,7 +63,6 @@ int main(int argc, char **argv) {
 
   std::string line;
   while (std::getline(program, line)) {
-    std::cout << line << std::endl;
     uint16_t instruction = assemble_chip8(line);
     output.put(instruction >> 8);
     output.put(instruction);

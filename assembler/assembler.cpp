@@ -25,6 +25,17 @@ uint16_t hex_literal_to_integer(const std::string hex_literal) {
   return value;
 }
 
+int parse_register_number(const std::string input) {
+  std::regex re("\\d+");
+  std::smatch match;
+  std::regex_search(input.begin(), input.end(), match, re);
+  return std::stoi(match[0]);
+}
+
+bool is_register_number(const std::string input) {
+  std::regex re("V\\d+,?");
+}
+
 uint16_t assemble_chip8(const std::string &command) {
   std::vector<std::string> tokens = split(command, "\\s+");
   std::string cmd = tokens[1];
@@ -32,6 +43,7 @@ uint16_t assemble_chip8(const std::string &command) {
   for (auto const &value : tokens) {
     std::cout << "TOKEN: " << value << std::endl;
   }
+
   if (cmd == "CLS") {
     return 0x00E0;
   } else if (cmd == "RET") {
@@ -42,6 +54,14 @@ uint16_t assemble_chip8(const std::string &command) {
   } else if (cmd == "CALL") {
     uint16_t addr = hex_literal_to_integer(tokens[2]);
     return (0x2000 | addr);
+  } else if (cmd == "SE") {
+    int register_number = parse_register_number(tokens[2]);
+    uint8_t byte = hex_literal_to_integer(tokens[3]);
+    return (0x3000 | register_number << 8 | byte);
+  } else if (cmd == "SNE") {
+    int register_number = parse_register_number(tokens[2]);
+    uint8_t byte = hex_literal_to_integer(tokens[3]);
+    return (0x4000 | register_number << 8 | byte);
   }
 
   return 0x0000;

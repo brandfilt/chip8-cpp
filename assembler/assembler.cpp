@@ -1,9 +1,9 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <sstream>
 #include <iterator>
 #include <regex>
+#include <sstream>
 #include <stdint.h>
 #include <string>
 
@@ -15,7 +15,7 @@ std::vector<std::string> split(const std::string &input,
   return {first, last};
 }
 
-uint16_t hex_literal_to_integer(const std::string hex_literal) {
+uint16_t hex_literal_to_integer(const std::string &hex_literal) {
   std::stringstream string_stream;
   string_stream << std::hex << hex_literal.substr(1, 3);
 
@@ -25,24 +25,25 @@ uint16_t hex_literal_to_integer(const std::string hex_literal) {
   return value;
 }
 
-int parse_register_number(const std::string input) {
-  std::regex re("\\d+");
-  std::smatch match;
-  std::regex_search(input.begin(), input.end(), match, re);
-  return std::stoi(match[0]);
-}
+std::vector<uint8_t> parse_register_numbers(const std::string &input) {
+  std::regex re("V(\\d+),?");
+  std::sregex_iterator first{input.begin(), input.end(), re}, last;
 
-bool is_register_number(const std::string input) {
-  std::regex re("V\\d+,?");
+  std::vector<uint8_t> registers;
+  for (auto i = first; i != last; ++i) {
+    std::smatch match = *i;
+    if (match.size() == 2) {
+      std::ssub_match submatch = match[1];
+      registers.push_back(std::stoi(submatch.str()));
+    }
+  }
+
+  return registers;
 }
 
 uint16_t assemble_chip8(const std::string &command) {
   std::vector<std::string> tokens = split(command, "\\s+");
   std::string cmd = tokens[1];
-
-  for (auto const &value : tokens) {
-    std::cout << "TOKEN: " << value << std::endl;
-  }
 
   if (cmd == "CLS") {
     return 0x00E0;
@@ -55,13 +56,24 @@ uint16_t assemble_chip8(const std::string &command) {
     uint16_t addr = hex_literal_to_integer(tokens[2]);
     return (0x2000 | addr);
   } else if (cmd == "SE") {
-    int register_number = parse_register_number(tokens[2]);
-    uint8_t byte = hex_literal_to_integer(tokens[3]);
-    return (0x3000 | register_number << 8 | byte);
+    std::vector<uint8_t> registers = parse_register_numbers(command);
+
+    if (registers.size() == 1) {        // SE Vx, byte
+      uint8_t byte = hex_literal_to_integer(tokens[3]);
+      return (0x3000 | registers[0] << 8 | byte);
+    } else if (registers.size() == 2) { // SE Vx, Vx
+      return (0x5000 | registers[0] << 8 | registers[1] << 4);
+    }
+
   } else if (cmd == "SNE") {
-    int register_number = parse_register_number(tokens[2]);
-    uint8_t byte = hex_literal_to_integer(tokens[3]);
-    return (0x4000 | register_number << 8 | byte);
+    std::vector<uint8_t> registers = parse_register_numbers(command);
+
+    if (registers.size() == 1) {        // SNE Vx, byte
+      uint8_t byte = hex_literal_to_integer(tokens[3]);
+      return (0x4000 | registers[0] << 8 | byte);
+    } else if (registers.size() == 2) { // SNE Vx, Vx
+      return (0x9000 | registers[0] << 8 | registers[1] << 4);
+    }
   }
 
   return 0x0000;

@@ -158,7 +158,7 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
     uint8_t secondaddress = (lastbyte & 0xF0) >> 4;
     std::cout << "SNE V" << std::setw(1) << static_cast<int>(firstaddress)
               << ", V" << std::setw(1) << static_cast<int>(secondaddress);
-  }
+  } break;
   case 0x0a: {
     // ANNN
     // LD I, addr

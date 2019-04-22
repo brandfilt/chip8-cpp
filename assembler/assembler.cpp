@@ -68,8 +68,14 @@ uint16_t assemble_chip8(const std::string &command) {
   } else if (cmd == "RET") {
     return 0x00EE;
   } else if (cmd == "JP") {
-    uint16_t addr = hex_literal_to_integer(tokens[1]);
-    return (0x1000 | addr);
+    std::vector<uint8_t> registers = parse_register_numbers(command);
+    if (registers.size() == 0) {
+      uint16_t addr = hex_literal_to_integer(tokens[1]);
+      return (0x1000 | addr);
+    } else {
+      uint16_t addr = hex_literal_to_integer(tokens[2]);
+      return (0xB000 | addr);
+    }
   } else if (cmd == "CALL") {
     uint16_t addr = hex_literal_to_integer(tokens[1]);
     return (0x2000 | addr);
@@ -137,6 +143,35 @@ uint16_t assemble_chip8(const std::string &command) {
       }
     } else if (registers.size() == 2) {
       return (0x8004 | registers[0] << 8 | registers[1] << 4);
+    }
+  } else if (cmd == "OR") {
+    std::vector<uint8_t> registers = parse_register_numbers(command);
+    return (0x8001 | registers[0] << 8 | registers[1]);
+  } else if (cmd == "AND") {
+    std::vector<uint8_t> registers = parse_register_numbers(command);
+    return (0x8002 | registers[0] << 8 | registers[1]);
+  } else if (cmd == "XOR") {
+    std::vector<uint8_t> registers = parse_register_numbers(command);
+    return (0x8003 | registers[0] << 8 | registers[1]);
+  } else if (cmd == "SUB") {
+    std::vector<uint8_t> registers = parse_register_numbers(command);
+    return (0x8005 | registers[0] << 8 | registers[1]);
+  } else if (cmd == "SHR") {
+    std::vector<uint8_t> registers = parse_register_numbers(command);
+    if (registers.size() == 1) {
+      return (0x8006 | registers[0] << 8);
+    } else {
+      return (0x8006 | registers[0] << 8 | registers[1]);
+    }
+  } else if (cmd == "SUBN") {
+    std::vector<uint8_t> registers = parse_register_numbers(command);
+    return (0x8007 | registers[0] << 8 | registers[1]);
+  } else if (cmd == "SHL") {
+    std::vector<uint8_t> registers = parse_register_numbers(command);
+    if (registers.size() == 1) {
+      return (0x800E | registers[0] << 8);
+    } else {
+      return (0x800E | registers[0] << 8 | registers[1]);
     }
   }
 

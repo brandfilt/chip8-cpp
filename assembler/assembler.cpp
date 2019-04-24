@@ -173,6 +173,35 @@ uint16_t assemble_chip8(const std::string &command) {
     } else {
       return (0x800E | registers[0] << 8 | registers[1]);
     }
+  } else if (cmd == "RND") {
+    std::vector<uint8_t> registers = parse_register_numbers(command);
+
+    uint8_t byte = hex_literal_to_integer(tokens[2]);
+    return (0xC000 | registers[0] << 8 | byte);
+  } else if (cmd == "DRW") {
+    std::vector<uint8_t> registers = parse_register_numbers(command);
+
+    uint8_t byte = hex_literal_to_integer(tokens[3]);
+    return (0xD000 | registers[0] << 8 | registers[1] << 4 | (byte & 0x0F));
+  } else if (cmd == "SKP") {
+    std::vector<uint8_t> registers = parse_register_numbers(command);
+    return (0xE09E | registers[0] << 8);
+  } else if (cmd == "SKNP") {
+    std::vector<uint8_t> registers = parse_register_numbers(command);
+    return (0xE0A1 | registers[0] << 8);
+  } else if (cmd == "SCD") {
+    std::vector<uint8_t> registers = parse_register_numbers(command);
+    return (0x00C0 | (registers[0] & 0x0F));
+  } else if (cmd == "SCR") {
+    return 0x00FB;
+  } else if (cmd == "SCL") {
+    return 0x00FC;
+  } else if (cmd == "EXIT") {
+    return 0x00FD;
+  } else if (cmd == "LOW") {
+    return 0x00FE;
+  } else if (cmd == "HIGH") {
+    return 0x00FF;
   }
 
   return 0x0000;

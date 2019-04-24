@@ -197,8 +197,17 @@ public:
       uint8_t y = (op[1] >> 8) & 0x0f;
       uint8_t n = op[1] & 0x0f;
 
+      int bit_position = y * SCREEN_WIDTH + x;
+      int bit_offset = bit_position % 8;
+      int byte_position = (bit_position - bit_offset) / 8;
       for (auto i = 0; i < n; i++) {
-
+        uint8_t byte = m_memory[m_I + i];
+        uint8_t current_byte = m_screen[byte_position + i];
+        m_screen[byte_position + i] = current_byte ^ (byte >> bit_offset);
+        if (i == n) {
+          current_byte = m_screen[byte_position + i + 1];
+          m_screen[byte_position + i + 1] = current_byte ^ (byte << (8 - bit_offset));
+        }
       }
 
     } break;

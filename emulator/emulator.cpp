@@ -9,6 +9,8 @@
 #include "display.h"
 #include "keyboard.h"
 
+#include "../disassembler/disassembler.h"
+
 class Chip8 {
 public:
   Chip8() {
@@ -39,8 +41,7 @@ public:
   }
 
   void run() {
-    bool quitting = false;
-    while (!quitting) {
+    while (!m_quitting) {
       emulate();
       m_display.update(m_screen);
       m_keyboard.pollEvents();
@@ -48,7 +49,7 @@ public:
       SDL_Event event;
       while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT)
-          quitting = true;
+          m_quitting = true;
       }
 
       SDL_Delay(2);
@@ -60,12 +61,28 @@ public:
   void emulate() {
     if (!m_ready)
       return;
+
     // Fetch first 8 bits of next instruction
     uint8_t *op = &m_memory[m_PC];
+
+    uint8_t firstbyte = op[0];
+    uint8_t lastbyte = op[1];
+
+    std::cout << std::hex << std::setfill('0') << std::setw(4) << m_PC << " "
+              << std::setw(2) << static_cast<int>(firstbyte) << " " << std::setw(2)
+              << static_cast<int>(lastbyte) << " ";
+
+    std::string command = disassemble(firstbyte, lastbyte);
+    std::cout << command << std::endl;
 
     int highnib = (*op & 0xf0) >> 4;
     switch (highnib) {
     case 0x00:
+      switch (lastbyte) {
+      case 0xFD:
+        m_quitting = true;
+      }
+      m_PC += 2;
       break;
     case 0x01: {
       // JUMP $NNN
@@ -210,6 +227,7 @@ public:
         }
       }
 
+      m_PC += 2;
     } break;
     case 0x0e: {
       int reg = op[0] & 0xf;
@@ -221,6 +239,7 @@ public:
         // Add 2 to program counter to skip next instruction
         if (m_keyboard.isPressed(key))
           m_PC += 2;
+        m_PC += 2;
       } break;
       case 0xa1: {
         // ExA1 - SKMP Vx
@@ -229,6 +248,7 @@ public:
         // Add 2 to program counter to skip next instruction
         if (!m_keyboard.isPressed(key))
           m_PC += 2;
+        m_PC += 2;
       } break;
       }
     } break;
@@ -303,6 +323,7 @@ private:
   uint8_t *m_screen; // Same as memory[0xF00]
 
   bool m_ready = false;
+  bool m_quitting = false;
 
   Display m_display;
   Keyboard m_keyboard;

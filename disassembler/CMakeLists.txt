@@ -3,4 +3,4 @@ project(Chip8Disassembler)
 
 add_definitions("-std=c++17 -Wall -pedantic")
 
-add_executable(disassembler disassembler.cpp)
+add_executable(disassembler disassembler.cpp main.cpp)

@@ -2,19 +2,13 @@
 #include <iomanip>
 #include <iostream>
 #include <stdint.h>
+#include <sstream>
 
-void disassemble_chip8(uint8_t *codebuffer, int pc) {
-  uint8_t *code = &codebuffer[pc];
-
-  uint8_t firstbyte = code[0];
-  uint8_t lastbyte = code[1];
+std::string disassemble(uint8_t firstbyte, uint8_t lastbyte) {
+  std::string output;
+  std::stringstream output_stream;
 
   uint8_t firstword = (firstbyte >> 4);
-
-  std::cout << std::hex << std::setfill('0') << std::setw(4) << pc << " "
-            << std::setw(2) << static_cast<int>(firstbyte) << " " << std::setw(2)
-            << static_cast<int>(lastbyte) << " ";
-
 
   switch (firstword) {
   case 0x00:
@@ -23,13 +17,20 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
       // 00E0
       // CLS
       // Clear the screen
-      std::cout << "CLS";
+      output_stream << "CLS";
+      std::cout << output;
     } break;
     case 0xEE: {
       // 00EE
       // RTS
       // Return from subroutine
-      std::cout << "RET";
+      output_stream << "RET";
+    } break;
+    case 0xFD: {
+      // 00EE
+      // RTS
+      // Return from subroutine
+      output_stream << "EXIT";
     } break;
     }
     break;
@@ -37,28 +38,28 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
     // JP addr
     // Jump to address NNN
     uint8_t addresshi = firstbyte & 0x0F;
-    std::cout << "JP #" << std::setw(1) << static_cast<int>(addresshi)
+    output_stream << "JP #" << std::setw(1) << static_cast<int>(addresshi)
               << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x02: {
     // CALL addr
     // Jump to subroutine at NNN
     uint8_t addresshi = firstbyte & 0x0F;
-    std::cout << "CALL #" << std::setw(1) << static_cast<int>(addresshi)
+    output_stream << "CALL #" << std::setw(1) << static_cast<int>(addresshi)
               << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x03: {
     // SE Vx, addr
     // Skip the next instruction if VX equals NN
     uint8_t addresshi = firstbyte & 0x0F;
-    std::cout << "SE V" << std::setw(1) << static_cast<int>(addresshi)
+    output_stream << "SE V" << std::setw(1) << static_cast<int>(addresshi)
               << ", #" << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x04: {
     // SNE Vx, addr
     // Skip the next instruction if VX doesn't equal NN
     uint8_t addresshi = firstbyte & 0x0F;
-    std::cout << "SNE V" << std::setw(1) << static_cast<int>(addresshi)
+    output_stream << "SNE V" << std::setw(1) << static_cast<int>(addresshi)
               << ", #" << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x05: {
@@ -66,21 +67,21 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
     // Skip the next instruction if VX equals VY
     uint8_t firstaddress = firstbyte & 0x0F;
     uint8_t secondaddress = (lastbyte & 0xF0) >> 4;
-    std::cout << "SE V" << std::setw(1) << static_cast<int>(firstaddress)
+    output_stream << "SE V" << std::setw(1) << static_cast<int>(firstaddress)
               << ", V" << std::setw(1) << static_cast<int>(secondaddress);
   } break;
   case 0x06: {
     // LD Vx, addr
     // Sets register VX to NN
     uint8_t reg = firstbyte & 0x0F;
-    std::cout << "LD V" << std::setw(1) << static_cast<int>(reg) << ", #"
+    output_stream << "LD V" << std::setw(1) << static_cast<int>(reg) << ", #"
               << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x07: {
     // ADD Vx, addr
     // Add NN to value in register VX
     uint8_t reg = firstbyte & 0x0F;
-    std::cout << "ADD V" << std::setw(1) << static_cast<int>(reg) << ", #"
+    output_stream << "ADD V" << std::setw(1) << static_cast<int>(reg) << ", #"
               << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x08: {
@@ -92,53 +93,53 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
     case 0x00: {
       // LD Vx, Vy
       // Set VX to the value of VY
-      std::cout << "LD V" << std::setw(1) << static_cast<int>(regx) << ", V"
+      output_stream << "LD V" << std::setw(1) << static_cast<int>(regx) << ", V"
                 << std::setw(1) << static_cast<int>(regy);
     } break;
     case 0x01: {
       // OR Vx, Vy
       // Set VX to VX OR VY
-      std::cout << "OR V" << std::setw(1) << static_cast<int>(regx) << ", V"
+      output_stream << "OR V" << std::setw(1) << static_cast<int>(regx) << ", V"
                 << std::setw(1) << static_cast<int>(regy);
     } break;
     case 0x02: {
       // AND Vx, Vy
       // Set VX to VX AND VY
-      std::cout << "AND V" << std::setw(1) << static_cast<int>(regx) << ", V"
+      output_stream << "AND V" << std::setw(1) << static_cast<int>(regx) << ", V"
                 << std::setw(1) << static_cast<int>(regy);
     } break;
     case 0x03: {
       // XOR Vx, Vy
       // Set VX to VX XOR VY
-      std::cout << "XOR V" << std::setw(1) << static_cast<int>(regx) << ", V"
+      output_stream << "XOR V" << std::setw(1) << static_cast<int>(regx) << ", V"
                 << std::setw(1) << static_cast<int>(regy);
     } break;
     case 0x04: {
       // ADD Vx, Vy
       // Add VX to VY, VF will be set to 1 if there's a carry and to 0 if
       // there's not
-      std::cout << "ADD V" << std::setw(1) << static_cast<int>(regx) << ", V"
+      output_stream << "ADD V" << std::setw(1) << static_cast<int>(regx) << ", V"
                 << std::setw(1) << static_cast<int>(regy);
     } break;
     case 0x05: {
       // SUB Vx, Vy
       // Substract VY from VX. VF is set to 0 if there's a borrow, and to 1 if
       // there's not.
-      std::cout << "SUB V" << std::setw(1) << static_cast<int>(regx) << ", V"
+      output_stream << "SUB V" << std::setw(1) << static_cast<int>(regx) << ", V"
                 << std::setw(1) << static_cast<int>(regy);
     } break;
     case 0x06: {
       // SHR Vx
       // Shift VX right by one. VF is set to the value of th least significant
       // bit of VX before the shift.
-      std::cout << "SHR V" << std::setw(1) << static_cast<int>(regx);
+      output_stream << "SHR V" << std::setw(1) << static_cast<int>(regx);
     } break;
     case 0x07: {
       // 8XY7
       // SUBN Vx, Vy
       // Substract VY from VX. VF is set to the mos significant bit of VX before
       // shift.
-      std::cout << "SUBN V" << static_cast<int>(regx) << ", V"
+      output_stream << "SUBN V" << static_cast<int>(regx) << ", V"
                 << static_cast<int>(regy);
     } break;
     case 0x0e: {
@@ -146,7 +147,7 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
       // SHL Vx
       // Shifts VX left by one. VF is set to the value of the most significant
       // bit of VX before shift.
-      std::cout << "SHL V" << static_cast<int>(regx);
+      output_stream << "SHL V" << static_cast<int>(regx);
     } break;
     }
   } break;
@@ -156,7 +157,7 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
     // Skip the next instruction if VX doesn't equal VY
     uint8_t firstaddress = firstbyte & 0x0F;
     uint8_t secondaddress = (lastbyte & 0xF0) >> 4;
-    std::cout << "SNE V" << std::setw(1) << static_cast<int>(firstaddress)
+    output_stream << "SNE V" << std::setw(1) << static_cast<int>(firstaddress)
               << ", V" << std::setw(1) << static_cast<int>(secondaddress);
   } break;
   case 0x0a: {
@@ -164,7 +165,7 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
     // LD I, addr
     // Sets I (index register) to the adress of NNN
     uint8_t addresshi = firstbyte & 0x0F;
-    std::cout << "LD I, #" << std::setw(1) << static_cast<int>(addresshi)
+    output_stream << "LD I, #" << std::setw(1) << static_cast<int>(addresshi)
               << std::setw(2) << static_cast<int>(lastbyte);
 
   } break;
@@ -173,7 +174,7 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
     // JP V0, addr
     // Jumps to address NNN plus value o V0
     uint8_t addresshi = firstbyte & 0x0F;
-    std::cout << "JP V0, " << std::setw(1) << static_cast<int>(addresshi)
+    output_stream << "JP V0, " << std::setw(1) << static_cast<int>(addresshi)
               << std::setw(2) << static_cast<int>(lastbyte);
 
   } break;
@@ -182,7 +183,7 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
     // RND Vx, byte
     // Sets VX to a random value plus NN
     uint8_t addresshi = firstbyte & 0x0F;
-    std::cout << "RND V" << std::setw(1) << static_cast<int>(addresshi)
+    output_stream << "RND V" << std::setw(1) << static_cast<int>(addresshi)
               << ", #" << std::setw(2) << static_cast<int>(lastbyte);
 
   } break;
@@ -194,7 +195,7 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
     uint8_t height = lastbyte & 0x0F;
     uint8_t regx = firstbyte & 0x0F;
     uint8_t regy = (lastbyte & 0xF0) >> 4;
-    std::cout << "DRW V" << static_cast<int>(regx) << ", V"
+    output_stream << "DRW V" << static_cast<int>(regx) << ", V"
               << static_cast<int>(regy) << ", #" << static_cast<int>(height);
 
   } break;
@@ -207,13 +208,13 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
       // EX9E
       // SKP Vx
       // Skip the next instruction if key stored in VX is pressed
-      std::cout << "SKP V" << static_cast<int>(reg);
+      output_stream << "SKP V" << static_cast<int>(reg);
       break;
     case 0xA1:
       // EXA1
       // SKNP Vx
       // Skip the next instruction if key stored in VX is not pressed
-      std::cout << "SKNP V" << static_cast<int>(reg);
+      output_stream << "SKNP V" << static_cast<int>(reg);
       break;
     }
   } break;
@@ -225,83 +226,100 @@ void disassemble_chip8(uint8_t *codebuffer, int pc) {
       // FX07
       // LD Vx, DT
       // Set VX to the value of the delay timer
-      std::cout << "LD V" << static_cast<int>(reg) << ", DT";
+      output_stream << "LD V" << static_cast<int>(reg) << ", DT";
       break;
     case 0x0A:
       // FX07
       // LD Vx, K
       // Wait for key stored in VX to be pressed
-      std::cout << "LD V" << static_cast<int>(reg) << ", K";
+      output_stream << "LD V" << static_cast<int>(reg) << ", K";
       break;
     case 0x15:
       // FX15
       // LD DT, V
       // Set delay timer to the value of VX
-      std::cout << "LD DT, V" << static_cast<int>(reg);
+      output_stream << "LD DT, V" << static_cast<int>(reg);
       break;
     case 0x18:
       // FX18
       // LD ST, Vx
       // Set sound timer to the value of VX
-      std::cout << "LD ST, V" << static_cast<int>(reg);
+      output_stream << "LD ST, V" << static_cast<int>(reg);
       break;
     case 0x1E:
       // FX1E
       // ADD I, Vx
       // Add value of VX to I (index register)
-      std::cout << "ADD I, V" << static_cast<int>(reg);
+      output_stream << "ADD I, V" << static_cast<int>(reg);
       break;
     case 0x29:
       // FX29
       // LD F, Vx
       // Set I (index register) to the location of the sprite for character
       // stored in VX
-      std::cout << "LD F, V" << static_cast<int>(reg);
+      output_stream << "LD F, V" << static_cast<int>(reg);
       break;
     case 0x33:
       // FX33
       // LD B, Vx
       // Stores Binary-coded decimal representation of VX at I (index register)
-      std::cout << "LD B, V" << static_cast<int>(reg);
+      output_stream << "LD B, V" << static_cast<int>(reg);
       break;
     case 0x55:
       // FX55
       // LD [I], Vx
       // Stores V0 to VX in memory starting at I (index register)
-      std::cout << "LD [I], V" << static_cast<int>(reg);
+      output_stream << "LD [I], V" << static_cast<int>(reg);
       break;
     case 0x65:
       // FX65
       // LD Vx, [I]
       // Fills V0 to VX with values from memory starting at address I
-      std::cout << "LD V" << static_cast<int>(reg) << ", [I]";
+      output_stream << "LD V" << static_cast<int>(reg) << ", [I]";
       break;
     }
   }
   }
+
+  return output_stream.str();
 }
 
-int main(int argc, char **argv) {
-  std::ifstream rom(argv[1], std::ios::in | std::ios::binary | std::ios::ate);
+void disassemble_buffer(uint8_t *codebuffer, int pc) {
+  uint8_t *code = &codebuffer[pc];
 
-  if (!rom.is_open()) {
-    std::cout << "Couldn't open file!" << std::endl;
-    return 1;
-  }
+  uint8_t firstbyte = code[0];
+  uint8_t lastbyte = code[1];
 
-  long size = rom.tellg();
-  unsigned char *buffer = new unsigned char[size + 0x200];
+  std::cout << std::hex << std::setfill('0') << std::setw(4) << pc << " "
+            << std::setw(2) << static_cast<int>(firstbyte) << " " << std::setw(2)
+            << static_cast<int>(lastbyte) << " ";
 
-  rom.seekg(0, std::ios::beg);
-  rom.read((char *)buffer + 0x200, size);
-  rom.close();
 
-  int pc = 0x200;
-  while (pc < (size + 0x200)) {
-    disassemble_chip8(buffer, pc);
-    pc += 2;
-    std::cout << std::endl;
-  }
-
-  return 0;
+  std::string result = disassemble(firstbyte, lastbyte);
+  std::cout << result;
 }
+
+// int main(int argc, char **argv) {
+//   std::ifstream rom(argv[1], std::ios::in | std::ios::binary | std::ios::ate);
+
+//   if (!rom.is_open()) {
+//     std::cout << "Couldn't open file!" << std::endl;
+//     return 1;
+//   }
+
+//   long size = rom.tellg();
+//   unsigned char *buffer = new unsigned char[size + 0x200];
+
+//   rom.seekg(0, std::ios::beg);
+//   rom.read((char *)buffer + 0x200, size);
+//   rom.close();
+
+//   int pc = 0x200;
+//   while (pc < (size + 0x200)) {
+//     disassemble_chip8(buffer, pc);
+//     pc += 2;
+//     std::cout << std::endl;
+//   }
+
+//   return 0;
+// }

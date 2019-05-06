@@ -18,6 +18,30 @@ public:
     m_screen = &m_memory[0xF00];
     m_SP = 0xfa0;
     m_PC = 0x200; // Programs are loaded at 0x200
+
+    const unsigned char fontset[] = {
+        0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+        0x20, 0x60, 0x20, 0x20, 0x70, // 1
+        0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+        0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+        0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+        0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+        0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+        0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+        0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+        0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+        0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+        0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+        0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+        0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+        0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+        0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+    };
+
+    for (auto i = 0; i < 80; i++) {
+      m_memory[i] = fontset[i];
+    }
+
   }
 
   void load_rom(char *filename) {
@@ -69,8 +93,8 @@ public:
     uint8_t lastbyte = op[1];
 
     std::cout << std::hex << std::setfill('0') << std::setw(4) << m_PC << " "
-              << std::setw(2) << static_cast<int>(firstbyte) << " " << std::setw(2)
-              << static_cast<int>(lastbyte) << " ";
+              << std::setw(2) << static_cast<int>(firstbyte) << " "
+              << std::setw(2) << static_cast<int>(lastbyte) << " ";
 
     std::string command = disassemble(firstbyte, lastbyte);
     std::cout << command << std::endl;
@@ -223,7 +247,8 @@ public:
         m_screen[byte_position + i] = current_byte ^ (byte >> bit_offset);
         if (i == n) {
           current_byte = m_screen[byte_position + i + 1];
-          m_screen[byte_position + i + 1] = current_byte ^ (byte << (8 - bit_offset));
+          m_screen[byte_position + i + 1] =
+              current_byte ^ (byte << (8 - bit_offset));
         }
       }
 

@@ -58,7 +58,6 @@ std::vector<uint8_t> parse_register_numbers(const std::string &input) {
 }
 
 uint16_t assemble_chip8(const std::string &command) {
-  // std::vector<std::string> tokens = split(command, "\\s+");
 
   std::vector<std::string> tokens = tokenize(command);
   std::string cmd = tokens[0];
@@ -101,29 +100,34 @@ uint16_t assemble_chip8(const std::string &command) {
   } else if (cmd == "LD") {
     std::vector<uint8_t> registers = parse_register_numbers(command);
 
+    std::cout << "reg: " << tokens[2] << std::endl;
+
     if (registers.size() == 1) {
-      if (tokens[2] == "DT") {
+      if (tokens[1] == "DT") {
         return (0xF015 | registers[0] << 8);
-      } else if (tokens[2] == "ST") {
+      } else if (tokens[1] == "ST") {
         return (0xF018 | registers[0] << 8);
-      } else if (tokens[2] == "F") {
+      } else if (tokens[1] == "F") {
         return (0xF029 | registers[0] << 8);
-      } else if (tokens[2] == "B") {
+      } else if (tokens[1] == "B") {
         return (0xF033 | registers[0] << 8);
-      } else if (tokens[2] == "[I]") {
+      } else if (tokens[1] == "[I]") {
         return (0xF055 | registers[0] << 8);
-      } else if (tokens[2] == "HF") {
+      } else if (tokens[1] == "HF") {
         return (0xF030 | registers[0] << 8);
-      } else if (tokens[2] == "R") {
+      } else if (tokens[1] == "R") {
         return (0xF075 | registers[0] << 8);
-      } else if (tokens[3] == "DT") {
+      } else if (tokens[1] == "DT") {
         return (0xF007 | registers[0] << 8);
-      } else if (tokens[3] == "K") {
+      } else if (tokens[1] == "K") {
         return (0xF00A | registers[0] << 8);
-      } else if (tokens[3] == "[I]") {
+      } else if (tokens[1] == "[I]") {
         return (0xF065 | registers[0] << 8);
-      } else if (tokens[3] == "R") {
+      } else if (tokens[1] == "R") {
         return (0xF085 | registers[0] << 8);
+      } else {
+        uint8_t byte = hex_literal_to_integer(tokens[2]);
+        return (0x6000 | registers[0] << 8 | byte);
       }
     } else if (registers.size() == 2) {
       return (0x8000 | registers[0] << 8 | registers[1] << 4);

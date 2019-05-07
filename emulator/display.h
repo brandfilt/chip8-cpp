@@ -50,8 +50,10 @@ public:
         int bit = i * 8 + a;
         int y = bit / SCREEN_WIDTH;
         int x = bit - y * SCREEN_WIDTH;
-        if (screen_byte & 0x01)
+        if (screen_byte & 0x01) {
           SDL_RenderDrawPoint(m_renderer, x, y);
+          // std::cout << x << ", " << y << std::endl;
+        }
 
         screen_byte = screen_byte >> 1;
       }
@@ -65,8 +67,10 @@ public:
     std::cout << "SCREEN START" << std::endl;
     for (auto i = 0; i < byte_count; i++) {
       uint8_t screen_byte = screen[i];
-      if ((i*8) % SCREEN_WIDTH == 0)
+      if ((i*8) % SCREEN_WIDTH == 0) {
         std::cout << std::endl;
+      }
+
       std::cout << std::hex << std::setfill('0')
                 << std::setw(2) << static_cast<int>(screen_byte) << " ";
     }

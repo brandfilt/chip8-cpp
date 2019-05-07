@@ -72,8 +72,8 @@ public:
 
   void run() {
     while (!m_quitting) {
-      // emulate();
-      // m_display.update(m_screen);
+      emulate();
+      m_display.update(m_screen);
       // m_keyboard.pollEvents();
 
       SDL_Event event;
@@ -81,8 +81,8 @@ public:
         if (event.type == SDL_QUIT)
           m_quitting = true;
         if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RIGHT) {
-          emulate();
-          m_display.update(m_screen);
+          // emulate();
+          // m_display.update(m_screen);
           m_display.print_debug(m_screen);
         }
 
@@ -91,7 +91,7 @@ public:
     }
   }
 
-  void init() { int ret = m_display.init(); }
+  void init() { m_display.init(); }
 
   void emulate() {
     if (!m_ready)
@@ -116,6 +116,11 @@ public:
       switch (lastbyte) {
       case 0xFD:
         m_quitting = true;
+      case 0xEE:
+        // RET
+        m_PC = m_memory[m_SP] << 8 | m_memory[m_SP+1];
+        m_SP += 2;
+        return;
       }
       m_PC += 2;
       break;
@@ -130,7 +135,7 @@ public:
       // Call subroutine at NNN
 
       // Advance stack pointer
-      m_SP = -2;
+      m_SP -= 2;
 
       // Store next instructions address to memory pointed by the stack pointer
       m_memory[m_SP] = ((m_PC + 2) & 0xff00) >> 8;

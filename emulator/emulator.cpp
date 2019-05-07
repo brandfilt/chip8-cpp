@@ -16,6 +16,7 @@ public:
   Chip8() {
     m_memory = new unsigned char[1024 * 4 + 0x200]; // 4K memory reserved
     m_screen = &m_memory[0xF00];
+    m_I = 0x00;
     m_SP = 0xfa0;
     m_PC = 0x200; // Programs are loaded at 0x200
 
@@ -38,9 +39,14 @@ public:
         0xF0, 0x80, 0xF0, 0x80, 0x80  // F
     };
 
+    for (auto i = 0; i < (1024*4+0x200); i++) {
+      m_memory[i] = 0;
+    }
+
     for (auto i = 0; i < 80; i++) {
       m_memory[i] = fontset[i];
     }
+
 
   }
 
@@ -66,16 +72,21 @@ public:
 
   void run() {
     while (!m_quitting) {
-      emulate();
-      m_display.update(m_screen);
-      m_keyboard.pollEvents();
+      // emulate();
+      // m_display.update(m_screen);
+      // m_keyboard.pollEvents();
 
       SDL_Event event;
       while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT)
           m_quitting = true;
-      }
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RIGHT) {
+          emulate();
+          m_display.update(m_screen);
+          m_display.print_debug(m_screen);
+        }
 
+      }
       SDL_Delay(2);
     }
   }
@@ -94,7 +105,7 @@ public:
 
     std::cout << std::hex << std::setfill('0') << std::setw(4) << m_PC << " "
               << std::setw(2) << static_cast<int>(firstbyte) << " "
-              << std::setw(2) << static_cast<int>(lastbyte) << " ";
+              << std::setw(2) << static_cast<int>(lastbyte) << " " << std::endl;
 
     std::string command = disassemble(firstbyte, lastbyte);
     std::cout << command << std::endl;
@@ -234,17 +245,20 @@ public:
       //   the screen. See instruction 8xy3 for more information on XOR, and
       //   section 2.4, Display, for more information on the Chip-8 screen and
       //   sprites.
-      uint8_t x = op[0] & 0x0f;
-      uint8_t y = (op[1] >> 8) & 0x0f;
+      uint8_t x_reg = op[0] & 0x0f;
+      uint8_t y_reg = (op[1] >> 4) & 0x0f;
       uint8_t n = op[1] & 0x0f;
+
+      uint8_t x = m_V[x_reg];
+      uint8_t y = m_V[y_reg];
 
       int bit_position = y * SCREEN_WIDTH + x;
       int bit_offset = bit_position % 8;
       int byte_position = (bit_position - bit_offset) / 8;
       for (auto i = 0; i < n; i++) {
         uint8_t byte = m_memory[m_I + i];
-        uint8_t current_byte = m_screen[byte_position + i];
-        m_screen[byte_position + i] = current_byte ^ (byte >> bit_offset);
+        uint8_t current_byte = m_screen[byte_position + i * SCREEN_WIDTH / 8];
+        m_screen[byte_position + i * SCREEN_WIDTH / 8] = current_byte ^ (byte >> bit_offset);
         if (i == n) {
           current_byte = m_screen[byte_position + i + 1];
           m_screen[byte_position + i + 1] =
@@ -278,7 +292,7 @@ public:
       }
     } break;
     case 0x0f: {
-      int reg = op[0] & 0xf;
+      int reg = op[0] & 0x0f;
       switch (op[1]) {
       case 0x07: {
         m_V[reg] = m_delay;
@@ -299,9 +313,9 @@ public:
       case 0x1e: {
         m_I = m_V[reg] + m_I;
       } break;
-      case 0x29:
-        // Not implemented yet
-        break;
+      case 0x29: {
+        m_I =  5 * m_V[reg];
+      } break;
       case 0x33: {
         /* Fx33 - LD B, Vx
          * Store Binary Coded Decimal representation of Vx in memory

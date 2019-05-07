@@ -100,7 +100,6 @@ uint16_t assemble_chip8(const std::string &command) {
   } else if (cmd == "LD") {
     std::vector<uint8_t> registers = parse_register_numbers(command);
 
-    std::cout << "reg: " << tokens[2] << std::endl;
 
     if (registers.size() == 1) {
       if (tokens[1] == "DT") {

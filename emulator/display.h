@@ -46,7 +46,7 @@ public:
     int byte_count = SCREEN_WIDTH * SCREEN_HEIGHT / 8;
     for (auto i = 0; i < byte_count; i++) {
       uint8_t screen_byte = screen[i];
-      for (auto a = 0; a < 8; a++) {
+      for (auto a = 7; a >= 0; a--) {
         int bit = i * 8 + a;
         int y = bit / SCREEN_WIDTH;
         int x = bit - y * SCREEN_WIDTH;
@@ -58,6 +58,19 @@ public:
     }
 
     SDL_RenderPresent(m_renderer);
+  }
+
+  void print_debug(uint8_t *screen) {
+    int byte_count = SCREEN_WIDTH * SCREEN_HEIGHT / 8;
+    std::cout << "SCREEN START" << std::endl;
+    for (auto i = 0; i < byte_count; i++) {
+      uint8_t screen_byte = screen[i];
+      if ((i*8) % SCREEN_WIDTH == 0)
+        std::cout << std::endl;
+      std::cout << std::hex << std::setfill('0')
+                << std::setw(2) << static_cast<int>(screen_byte) << " ";
+    }
+    std::cout << "SCREEN END" << std::endl;
   }
 
 private:

@@ -2,3 +2,4 @@
 disassembler/disassembler
 assembler/assembler
 emulator/emulator
+*/build*

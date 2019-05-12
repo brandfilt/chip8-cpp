@@ -38,14 +38,14 @@ std::string disassemble(uint8_t firstbyte, uint8_t lastbyte) {
     // JP addr
     // Jump to address NNN
     uint8_t addresshi = firstbyte & 0x0F;
-    output_stream << "JP #" << std::setw(1) << static_cast<int>(addresshi)
+    output_stream << "JP #" << std::hex << std::setw(1) << static_cast<int>(addresshi)
               << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x02: {
     // CALL addr
     // Jump to subroutine at NNN
     uint8_t addresshi = firstbyte & 0x0F;
-    output_stream << "CALL #" << std::setw(1) << static_cast<int>(addresshi)
+    output_stream << "CALL #" << std::hex << std::setw(1) << static_cast<int>(addresshi)
               << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x03: {
@@ -75,7 +75,7 @@ std::string disassemble(uint8_t firstbyte, uint8_t lastbyte) {
     // Sets register VX to NN
     uint8_t reg = firstbyte & 0x0F;
     output_stream << "LD V" << std::setw(1) << static_cast<int>(reg) << ", #"
-              << std::setw(2) << static_cast<int>(lastbyte);
+                  << std::hex << std::setw(2) << static_cast<int>(lastbyte);
   } break;
   case 0x07: {
     // ADD Vx, addr
@@ -165,7 +165,7 @@ std::string disassemble(uint8_t firstbyte, uint8_t lastbyte) {
     // LD I, addr
     // Sets I (index register) to the adress of NNN
     uint8_t addresshi = firstbyte & 0x0F;
-    output_stream << "LD I, #" << std::setw(1) << static_cast<int>(addresshi)
+    output_stream << "LD I, #" << std::hex << std::setw(1) << static_cast<int>(addresshi)
               << std::setw(2) << static_cast<int>(lastbyte);
 
   } break;
@@ -184,7 +184,7 @@ std::string disassemble(uint8_t firstbyte, uint8_t lastbyte) {
     // Sets VX to a random value plus NN
     uint8_t addresshi = firstbyte & 0x0F;
     output_stream << "RND V" << std::setw(1) << static_cast<int>(addresshi)
-              << ", #" << std::setw(2) << static_cast<int>(lastbyte);
+                  << ", #" << std::hex << std::setw(2) << static_cast<int>(lastbyte);
 
   } break;
   case 0x0d: {
@@ -196,7 +196,7 @@ std::string disassemble(uint8_t firstbyte, uint8_t lastbyte) {
     uint8_t regx = firstbyte & 0x0F;
     uint8_t regy = (lastbyte & 0xF0) >> 4;
     output_stream << "DRW V" << static_cast<int>(regx) << ", V"
-              << static_cast<int>(regy) << ", #" << static_cast<int>(height);
+                  << static_cast<int>(regy) << ", #" << std::hex << static_cast<int>(height);
 
   } break;
   case 0x0e: {

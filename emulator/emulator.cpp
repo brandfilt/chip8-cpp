@@ -17,7 +17,7 @@ public:
     m_memory = new unsigned char[1024 * 4 + 0x200]; // 4K memory reserved
     m_screen = &m_memory[0xF00];
     m_I = 0x00;
-    m_SP = 0xfa0;
+    m_SP = 0x70;
     m_PC = 0x200; // Programs are loaded at 0x200
 
     const unsigned char fontset[] = {
@@ -72,7 +72,7 @@ public:
 
   void run() {
     while (!m_quitting) {
-      emulate();
+      // emulate();
       m_display.update(m_screen);
       // m_keyboard.pollEvents();
 
@@ -81,8 +81,8 @@ public:
         if (event.type == SDL_QUIT)
           m_quitting = true;
         if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RIGHT) {
-          // emulate();
-          // m_display.update(m_screen);
+          emulate();
+          m_display.update(m_screen);
           m_display.print_debug(m_screen);
         }
 
@@ -105,7 +105,7 @@ public:
 
     std::cout << std::hex << std::setfill('0') << std::setw(4) << m_PC << " "
               << std::setw(2) << static_cast<int>(firstbyte) << " "
-              << std::setw(2) << static_cast<int>(lastbyte) << " " << std::endl;
+              << std::setw(2) << static_cast<int>(lastbyte) << " ";
 
     std::string command = disassemble(firstbyte, lastbyte);
     std::cout << command << std::endl;
@@ -116,6 +116,14 @@ public:
       switch (lastbyte) {
       case 0xFD:
         m_quitting = true;
+        break;
+      case 0xE0: {
+        int byte_count = SCREEN_WIDTH * SCREEN_HEIGHT / 8;
+        for (auto i = 0; i < byte_count; i++) {
+          m_screen[i] = 0;
+        }
+        break;
+      }
       case 0xEE:
         // RET
         m_PC = m_memory[m_SP] << 8 | m_memory[m_SP+1];
@@ -127,7 +135,7 @@ public:
     case 0x01: {
       // JUMP $NNN
       // Jump to NNN
-      uint16_t target = ((op[0] & 0xf) << 8) | op[1];
+      uint16_t target = ((op[0] & 0x0f) << 8) | op[1];
       m_PC = target;
     } break;
     case 0x02: {

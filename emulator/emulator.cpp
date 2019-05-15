@@ -11,6 +11,8 @@
 
 #include "../disassembler/disassembler.h"
 
+const uint16_t CLOCK_SPEED_HZ = 500;
+
 class Chip8 {
 public:
   Chip8() {
@@ -72,7 +74,7 @@ public:
 
   void run() {
     while (!m_quitting) {
-      // emulate();
+      emulate();
       m_display.update(m_screen);
       // m_keyboard.pollEvents();
 
@@ -87,7 +89,7 @@ public:
         }
 
       }
-      SDL_Delay(2);
+      SDL_Delay(1000 / CLOCK_SPEED_HZ);
     }
   }
 
@@ -118,6 +120,7 @@ public:
         m_quitting = true;
         break;
       case 0xE0: {
+        // CLS
         int byte_count = SCREEN_WIDTH * SCREEN_HEIGHT / 8;
         for (auto i = 0; i < byte_count; i++) {
           m_screen[i] = 0;

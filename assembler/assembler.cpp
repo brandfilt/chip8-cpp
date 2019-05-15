@@ -63,6 +63,12 @@ uint16_t assemble_chip8(const std::string &command) {
   std::string cmd = tokens[0];
   std::cout << cmd << std::endl;
 
+  for (auto token : tokens) {
+    std::cout << token << " ";
+  }
+
+  std::cout << std::endl;
+
   if (cmd == "CLS") {
     return 0x00E0;
   } else if (cmd == "RET") {
@@ -117,13 +123,13 @@ uint16_t assemble_chip8(const std::string &command) {
         return (0xF030 | registers[0] << 8);
       } else if (tokens[1] == "R") {
         return (0xF075 | registers[0] << 8);
-      } else if (tokens[1] == "DT") {
+      } else if (tokens[2] == "DT") {
         return (0xF007 | registers[0] << 8);
-      } else if (tokens[1] == "K") {
+      } else if (tokens[2] == "K") {
         return (0xF00A | registers[0] << 8);
-      } else if (tokens[1] == "[I]") {
+      } else if (tokens[2] == "[I]") {
         return (0xF065 | registers[0] << 8);
-      } else if (tokens[1] == "R") {
+      } else if (tokens[2] == "R") {
         return (0xF085 | registers[0] << 8);
       } else {
         uint8_t byte = hex_literal_to_integer(tokens[2]);

@@ -32,13 +32,14 @@ std::vector<std::string> split(const std::string &input,
 }
 
 uint16_t hex_literal_to_integer(const std::string &hex_literal) {
-  std::stringstream string_stream;
-  string_stream << std::hex << hex_literal.substr(1, hex_literal.size());
+  // std::stringstream string_stream;
+  // string_stream << std::hex << hex_literal.substr(1, hex_literal.size());
 
-  uint16_t value;
-  string_stream >> value;
+  size_t p = 0;
+  return stoul(hex_literal.substr(1, hex_literal.size()), &p, 16);
+  // string_stream >> value;
 
-  return value;
+  // return value;
 }
 
 std::vector<uint8_t> parse_register_numbers(const std::string &input) {

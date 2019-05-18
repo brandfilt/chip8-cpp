@@ -8,7 +8,9 @@
 class Keyboard {
 public:
   Keyboard() {}
+  bool isAnyPressed() const { return m_pressed.size() > 0; }
   bool isPressed(const uint8_t &key) const { return m_pressed.count(key) == 1; }
+  uint8_t lastPressed() const {return *m_pressed.end();}
 
   uint8_t waitKeyPress() const {
     SDL_Event event;
@@ -21,13 +23,14 @@ public:
   }
 
   void pollEvents() {
+    m_pressed.clear();
+
     SDL_Event event;
     SDL_PollEvent(&event);
     if (event.type == SDL_KEYDOWN) {
       uint8_t keysym = event.key.keysym.sym;
       m_pressed.insert(keysym);
-    }
-    else if (event.type == SDL_KEYUP) {
+    } else if (event.type == SDL_KEYUP) {
       uint8_t keysym = event.key.keysym.sym;
       m_pressed.erase(keysym);
     }

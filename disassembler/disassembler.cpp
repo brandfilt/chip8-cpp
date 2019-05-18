@@ -45,8 +45,7 @@ std::string disassemble(uint8_t firstbyte, uint8_t lastbyte) {
     // CALL addr
     // Jump to subroutine at NNN
     uint8_t addresshi = firstbyte & 0x0F;
-    output_stream << "CALL #" << std::hex << std::setw(1) << static_cast<int>(addresshi)
-              << std::setw(2) << static_cast<int>(lastbyte);
+    output_stream << "CALL #" << std::hex << ((addresshi << 8) | (lastbyte));
   } break;
   case 0x03: {
     // SE Vx, addr

@@ -76,17 +76,17 @@ public:
     while (!m_quitting) {
       emulate();
       m_display.update(m_screen);
-      // m_keyboard.pollEvents();
+      m_keyboard.pollEvents();
 
       SDL_Event event;
       while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT)
           m_quitting = true;
-        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RIGHT) {
-          emulate();
-          m_display.update(m_screen);
-          m_display.print_debug(m_screen);
-        }
+        // if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RIGHT) {
+        //   emulate();
+        //   m_display.update(m_screen);
+        //   m_display.print_debug(m_screen);
+        // }
 
       }
       SDL_Delay(1000 / CLOCK_SPEED_HZ);
@@ -317,8 +317,13 @@ public:
       case 0x0A: {
         // Fx0A - LD Vx, K
         // Wait for key press, store value of the key in Vx
-        uint8_t key = m_keyboard.waitKeyPress();
-        m_V[reg] = key;
+        if (!m_keyboard.isAnyPressed()) {
+          m_PC -= 2;
+        } else {
+          uint8_t key = m_keyboard.lastPressed();
+          std::cout << key << std::endl;
+          m_V[reg] = key;
+        }
       } break;
       case 0x15: {
         m_delay = m_V[reg];

@@ -370,6 +370,12 @@ public:
       m_PC += 2;
     } break;
     }
+
+
+    if (m_delay > 0 && m_counter == 60)
+      m_delay--;
+
+    m_counter = (m_counter >= 60) ? counter++; : 0;
   }
 
 private:
@@ -384,6 +390,7 @@ private:
 
   bool m_ready = false;
   bool m_quitting = false;
+  int m_counter = 0;
 
   Display m_display;
   Keyboard m_keyboard;

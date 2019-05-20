@@ -13,9 +13,41 @@
 
 const uint16_t CLOCK_SPEED_HZ = 500;
 
+class Timer {
+public:
+  Timer(int frequency) : m_frequency(frequency), m_counter(0), m_value(0) {}
+  Timer& operator=(uint8_t value) {
+    m_value = value;
+    return *this;
+  }
+
+  uint8_t value() const {
+    return m_value;
+  }
+
+  void setValue(int value) {
+    m_value = value;
+  }
+
+  void update() {
+    m_counter++;
+
+    if (m_counter >= m_frequency) {
+      m_value = m_value > 0 ? m_value-- : 0;
+      m_counter = 0;
+    }
+
+  }
+
+private:
+  int m_frequency;
+  int m_counter;
+  uint8_t m_value;
+};
+
 class Chip8 {
 public:
-  Chip8() {
+  Chip8() : m_delay(60), m_sound(60) {
     m_memory = new unsigned char[1024 * 4 + 0x200]; // 4K memory reserved
     m_screen = &m_memory[0xF00];
     m_I = 0x00;
@@ -311,7 +343,7 @@ public:
       int reg = op[0] & 0x0f;
       switch (op[1]) {
       case 0x07: {
-        m_V[reg] = m_delay;
+        m_V[reg] = m_delay.value();
         m_PC += 2;
       } break;
       case 0x0A: {
@@ -372,10 +404,8 @@ public:
     }
 
 
-    if (m_delay > 0 && m_counter == 60)
-      m_delay--;
-
-    m_counter = (m_counter >= 60) ? counter++; : 0;
+    m_delay.update();
+    m_sound.update();
   }
 
 private:
@@ -383,14 +413,13 @@ private:
   uint16_t m_I;    // Index register
   uint16_t m_SP;   // Stack pointer
   uint16_t m_PC;   // Program counter
-  uint8_t m_delay; // Delay timer
-  uint8_t m_sound; // Sound timer
+  Timer m_delay; // Delay timer
+  Timer m_sound; // Sound timer
   uint8_t *m_memory;
   uint8_t *m_screen; // Same as memory[0xF00]
 
   bool m_ready = false;
   bool m_quitting = false;
-  int m_counter = 0;
 
   Display m_display;
   Keyboard m_keyboard;

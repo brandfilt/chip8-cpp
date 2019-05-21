@@ -406,6 +406,8 @@ public:
 
     m_delay.update();
     m_sound.update();
+
+    std::cout << m_delay.value() << std::endl;
   }
 
 private:

@@ -32,14 +32,13 @@ std::vector<std::string> split(const std::string &input,
 }
 
 uint16_t hex_literal_to_integer(const std::string &hex_literal) {
-  // std::stringstream string_stream;
-  // string_stream << std::hex << hex_literal.substr(1, hex_literal.size());
+  std::stringstream string_stream;
+  string_stream << std::hex << hex_literal.substr(1, hex_literal.size());
 
-  size_t p = 0;
-  return stoul(hex_literal.substr(1, hex_literal.size()), &p, 16);
-  // string_stream >> value;
+  uint16_t value;
+  string_stream >> value;
 
-  // return value;
+  return value;
 }
 
 std::vector<uint8_t> parse_register_numbers(const std::string &input) {
@@ -90,7 +89,7 @@ uint16_t assemble_chip8(const std::string &command) {
     std::vector<uint8_t> registers = parse_register_numbers(command);
 
     if (registers.size() == 1) { // SE Vx, byte
-      uint8_t byte = hex_literal_to_integer(tokens[1]);
+      uint8_t byte = hex_literal_to_integer(tokens[2]);
       return (0x3000 | registers[0] << 8 | byte);
     } else if (registers.size() == 2) { // SE Vx, Vx
       return (0x5000 | registers[0] << 8 | registers[1] << 4);

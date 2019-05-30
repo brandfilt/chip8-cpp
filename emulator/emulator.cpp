@@ -33,7 +33,7 @@ public:
     m_counter++;
 
     if (m_counter >= m_frequency) {
-      m_value = m_value > 0 ? m_value-- : 0;
+      m_value = m_value > 0 ? --m_value : 0;
       m_counter = 0;
     }
 
@@ -190,7 +190,7 @@ public:
     } break;
     case 0x03: {
       uint8_t reg = op[0] & 0x0f;
-      if (m_V[reg] == op[1])
+      if (m_V[reg] == static_cast<int>(op[1]))
         m_PC += 2;
       m_PC += 2;
     } break;
@@ -344,21 +344,19 @@ public:
       switch (op[1]) {
       case 0x07: {
         m_V[reg] = m_delay.value();
-        m_PC += 2;
-      } break;
-      case 0x0A: {
+        // m_PC += 2;
+      } break; case 0x0A: {
         // Fx0A - LD Vx, K
         // Wait for key press, store value of the key in Vx
         if (!m_keyboard.isAnyPressed()) {
           m_PC -= 2;
         } else {
           uint8_t key = m_keyboard.lastPressed();
-          std::cout << key << std::endl;
           m_V[reg] = key;
         }
       } break;
       case 0x15: {
-        m_delay = m_V[reg];
+        m_delay.setValue(m_V[reg]);
       } break;
       case 0x18: {
         m_sound = m_V[reg];
@@ -406,8 +404,6 @@ public:
 
     m_delay.update();
     m_sound.update();
-
-    std::cout << m_delay.value() << std::endl;
   }
 
 private:

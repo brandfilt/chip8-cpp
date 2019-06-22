@@ -137,12 +137,12 @@ public:
     uint8_t firstbyte = op[0];
     uint8_t lastbyte = op[1];
 
-    std::cout << std::hex << std::setfill('0') << std::setw(4) << m_PC << " "
-              << std::setw(2) << static_cast<int>(firstbyte) << " "
-              << std::setw(2) << static_cast<int>(lastbyte) << " ";
+    // std::cout << std::hex << std::setfill('0') << std::setw(4) << m_PC << " "
+    //           << std::setw(2) << static_cast<int>(firstbyte) << " "
+    //           << std::setw(2) << static_cast<int>(lastbyte) << " ";
 
-    std::string command = disassemble(firstbyte, lastbyte);
-    std::cout << command << std::endl;
+    // std::string command = disassemble(firstbyte, lastbyte);
+    // std::cout << command << std::endl;
 
     int highnib = (*op & 0xf0) >> 4;
     switch (highnib) {
@@ -352,6 +352,7 @@ public:
           m_PC -= 2;
         } else {
           uint8_t key = m_keyboard.lastPressed();
+          std::cout << "LAST: " << static_cast<uint8_t>(key) << std::endl;
           m_V[reg] = key;
         }
       } break;

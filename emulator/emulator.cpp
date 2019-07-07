@@ -16,18 +16,14 @@ const uint16_t CLOCK_SPEED_HZ = 500;
 class Timer {
 public:
   Timer(int frequency) : m_frequency(frequency), m_counter(0), m_value(0) {}
-  Timer& operator=(uint8_t value) {
+  Timer &operator=(uint8_t value) {
     m_value = value;
     return *this;
   }
 
-  uint8_t value() const {
-    return m_value;
-  }
+  uint8_t value() const { return m_value; }
 
-  void setValue(int value) {
-    m_value = value;
-  }
+  void setValue(int value) { m_value = value; }
 
   void update() {
     m_counter++;
@@ -36,7 +32,6 @@ public:
       m_value = m_value > 0 ? --m_value : 0;
       m_counter = 0;
     }
-
   }
 
 private:
@@ -73,15 +68,13 @@ public:
         0xF0, 0x80, 0xF0, 0x80, 0x80  // F
     };
 
-    for (auto i = 0; i < (1024*4+0x200); i++) {
+    for (auto i = 0; i < (1024 * 4 + 0x200); i++) {
       m_memory[i] = 0;
     }
 
     for (auto i = 0; i < 80; i++) {
       m_memory[i] = fontset[i];
     }
-
-
   }
 
   void load_rom(char *filename) {
@@ -114,12 +107,12 @@ public:
       while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT)
           m_quitting = true;
-        // if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RIGHT) {
+        // if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RIGHT)
+        // {
         //   emulate();
         //   m_display.update(m_screen);
         //   m_display.print_debug(m_screen);
         // }
-
       }
       SDL_Delay(1000 / CLOCK_SPEED_HZ);
     }
@@ -161,7 +154,7 @@ public:
       }
       case 0xEE:
         // RET
-        m_PC = m_memory[m_SP] << 8 | m_memory[m_SP+1];
+        m_PC = m_memory[m_SP] << 8 | m_memory[m_SP + 1];
         m_SP += 2;
         return;
       }
@@ -306,7 +299,8 @@ public:
       for (auto i = 0; i < n; i++) {
         uint8_t byte = m_memory[m_I + i];
         uint8_t current_byte = m_screen[byte_position + i * SCREEN_WIDTH / 8];
-        m_screen[byte_position + i * SCREEN_WIDTH / 8] = current_byte ^ (byte >> bit_offset);
+        m_screen[byte_position + i * SCREEN_WIDTH / 8] =
+            current_byte ^ (byte >> bit_offset);
         if (i == n) {
           current_byte = m_screen[byte_position + i + 1];
           m_screen[byte_position + i + 1] =
@@ -345,14 +339,15 @@ public:
       case 0x07: {
         m_V[reg] = m_delay.value();
         // m_PC += 2;
-      } break; case 0x0A: {
+      } break;
+      case 0x0A: {
         // Fx0A - LD Vx, K
         // Wait for key press, store value of the key in Vx
-        if (!m_keyboard.isAnyPressed()) {
+        // m_V[reg] = m_keyboard.waitKeyPress();
+        if (!m_keyboard.anyKeyDownEvents()) {
           m_PC -= 2;
         } else {
           uint8_t key = m_keyboard.lastPressed();
-          std::cout << "LAST: " << static_cast<uint8_t>(key) << std::endl;
           m_V[reg] = key;
         }
       } break;
@@ -366,7 +361,7 @@ public:
         m_I = m_V[reg] + m_I;
       } break;
       case 0x29: {
-        m_I =  5 * m_V[reg];
+        m_I = 5 * m_V[reg];
       } break;
       case 0x33: {
         /* Fx33 - LD B, Vx
@@ -402,7 +397,6 @@ public:
     } break;
     }
 
-
     m_delay.update();
     m_sound.update();
   }
@@ -412,8 +406,8 @@ private:
   uint16_t m_I;    // Index register
   uint16_t m_SP;   // Stack pointer
   uint16_t m_PC;   // Program counter
-  Timer m_delay; // Delay timer
-  Timer m_sound; // Sound timer
+  Timer m_delay;   // Delay timer
+  Timer m_sound;   // Sound timer
   uint8_t *m_memory;
   uint8_t *m_screen; // Same as memory[0xF00]
 

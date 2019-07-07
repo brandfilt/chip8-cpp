@@ -12,37 +12,39 @@ public:
   bool isPressed(const uint8_t &key) const { return m_pressed.count(key) == 1; }
   uint8_t lastPressed() const {return *m_pressed.rbegin();}
 
-  uint8_t waitKeyPress() const {
-    SDL_Event event;
-    while (true) {
-      SDL_PollEvent(&event);
-      if (event.type == SDL_KEYDOWN) {
-        return Keyboard::keySymToChip8Key(event.key.keysym.sym);
-      }
-    }
-  }
-
   void pollEvents() {
     // m_pressed.clear();
+    for (auto key : m_pressed) 
+      m_keyDown.erase(key);
 
     SDL_Event event;
     SDL_PollEvent(&event);
     if (event.type == SDL_KEYDOWN) {
       uint8_t keysym = event.key.keysym.sym;
-      m_pressed.insert(Keyboard::keySymToChip8Key(keysym));
+      uint8_t key = Keyboard::keySymToChip8Key(keysym);
+      if (m_pressed.count(key) == 0) {
+        m_pressed.insert(key);
+        m_keyDown.insert(key);
+      }
+
     } else if (event.type == SDL_KEYUP) {
       uint8_t keysym = event.key.keysym.sym;
       m_pressed.erase(Keyboard::keySymToChip8Key(keysym));
     }
   }
 
+
+  bool keyDownEvent(const uint8_t &key) const { return m_keyDown.count(key) == 1; }
+  bool anyKeyDownEvents() const {return m_keyDown.size() > 0;}
+
+
 private:
   std::set<uint8_t> m_pressed;
+  std::set<uint8_t> m_keyDown;
 
   static uint8_t keySymToChip8Key(uint8_t sym) {
     switch(sym) {
     case SDLK_0:
-      std::cout << std::hex << static_cast<int>(sym) << std::endl;
       return 0x00;
     case SDLK_1:
       return 0x01;

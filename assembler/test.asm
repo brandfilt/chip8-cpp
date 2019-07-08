@@ -13,11 +13,11 @@
   LD V2, #0
   CALL #230
   LD V3, K
-  LD V1, #12
+  LD V1, #c
   LD V2, #0
   CALL #230
   LD V3, K
-  LD V1, #18
+  LD V1, #12
   LD V2, #0
   CALL #230
   LD V5, K

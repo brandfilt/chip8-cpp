@@ -1,3 +1,4 @@
+#include <bitset>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -296,11 +297,24 @@ public:
       int bit_position = y * SCREEN_WIDTH + x;
       int bit_offset = bit_position % 8;
       int byte_position = (bit_position - bit_offset) / 8;
+      int overflow_bit_position = y * SCREEN_WIDTH + x + 8;
+      int overflow_bit_offset = overflow_bit_position % 8;
+      int overflow_byte_position =
+          (overflow_bit_position - overflow_bit_offset) / 8;
+
       for (auto i = 0; i < n; i++) {
         uint8_t byte = m_memory[m_I + i];
         uint8_t current_byte = m_screen[byte_position + i * SCREEN_WIDTH / 8];
         m_screen[byte_position + i * SCREEN_WIDTH / 8] =
             current_byte ^ (byte >> bit_offset);
+
+        if (overflow_bit_offset > 0) {
+          uint8_t current_overflow_byte =
+              m_screen[overflow_byte_position + i * SCREEN_WIDTH / 8];
+          m_screen[overflow_byte_position + i * SCREEN_WIDTH / 8] =
+              current_overflow_byte ^ (byte << (8 - overflow_bit_offset));
+        }
+
         if (i == n) {
           current_byte = m_screen[byte_position + i + 1];
           m_screen[byte_position + i + 1] =

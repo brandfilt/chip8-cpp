@@ -61,13 +61,6 @@ uint16_t assemble_chip8(const std::string &command) {
 
   std::vector<std::string> tokens = tokenize(command);
   std::string cmd = tokens[0];
-  std::cout << cmd << std::endl;
-
-  for (auto token : tokens) {
-    std::cout << token << " ";
-  }
-
-  std::cout << std::endl;
 
   if (cmd == "CLS") {
     return 0x00E0;

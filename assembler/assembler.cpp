@@ -6,6 +6,7 @@
 #include <sstream>
 #include <stdint.h>
 #include <string>
+#include <map>
 
 std::vector<std::string> tokenize(const std::string &input) {
   std::regex re("([A-z0-9#]+)");
@@ -58,7 +59,6 @@ std::vector<uint8_t> parse_register_numbers(const std::string &input) {
 }
 
 uint16_t assemble_chip8(const std::string &command) {
-
   std::vector<std::string> tokens = tokenize(command);
   std::string cmd = tokens[0];
 
@@ -224,8 +224,24 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  std::map<std::string, uint16_t> label_addresses;
+  std::vector<std::string> lines;
   std::string line;
+  int row = 0;
   while (std::getline(program, line)) {
+    std::regex re("(\\w+):");
+    std::smatch match;
+
+    if (std::regex_search(line.begin(), line.end(), match, re)) {
+      label_addresses.insert({match[1], row+0x200});
+      line = std::regex_replace(line, std::regex(match[1]), "");
+    }
+
+    lines.push_back(line);
+    row++;
+  }
+
+  for (auto line : lines) {
     uint16_t instruction = assemble_chip8(line);
     output.put(instruction >> 8);
     output.put(instruction);

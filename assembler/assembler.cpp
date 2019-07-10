@@ -1,12 +1,13 @@
+#include <algorithm>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <iterator>
+#include <map>
 #include <regex>
 #include <sstream>
 #include <stdint.h>
 #include <string>
-#include <map>
 
 std::vector<std::string> tokenize(const std::string &input) {
   std::regex re("([A-z0-9#]+)");
@@ -99,7 +100,6 @@ uint16_t assemble_chip8(const std::string &command) {
     }
   } else if (cmd == "LD") {
     std::vector<uint8_t> registers = parse_register_numbers(command);
-
 
     if (registers.size() == 1) {
       if (tokens[1] == "DT") {
@@ -229,12 +229,20 @@ int main(int argc, char **argv) {
   std::string line;
   int row = 0;
   while (std::getline(program, line)) {
+    bool isEmpty = std::all_of(line.begin(), line.end(), [](char c) {
+      return std::isspace(static_cast<unsigned char>(c));
+    });
+
+    if (isEmpty) continue;
+
     std::regex re("(\\w+):");
     std::smatch match;
-
-    if (std::regex_search(line.begin(), line.end(), match, re)) {
-      label_addresses.insert({match[1], row+0x200});
-      line = std::regex_replace(line, std::regex(match[1]), "");
+    if (std::regex_search(line, match, re)) {
+      std::string label = std::string(match[1].begin(), match[1].end());
+      label_addresses.insert({label, row + 0x200});
+      line = std::regex_replace(line, std::regex(label), "");
+      std::cout << "LABEL: " << label << std::endl;
+      std::cout << "LINE: " << line << std::endl;
     }
 
     lines.push_back(line);

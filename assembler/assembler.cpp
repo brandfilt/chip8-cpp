@@ -225,7 +225,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  std::map<std::string, uint16_t> label_addresses;
+  std::map<std::string, std::string> label_addresses;
   std::vector<std::string> lines;
   std::string line;
   int row = 0;
@@ -241,13 +241,19 @@ int main(int argc, char **argv) {
     if (std::regex_search(line, match, re)) {
       std::string label_match = match[1].str();
       std::string label = label_match.substr(0, label_match.size()-1);
-      label_addresses.insert({label, row + 0x200});
+
+      std::string address;
+      std::stringstream ss2;
+      ss2 << "#" << std::hex << (row*2+0x200);
+      label_addresses.insert({label, ss2.str()});
 
       std::stringstream ss;
       ss << "^" << label_match << "\\s+";
       std::string remove = ss.str();
 
       line = std::regex_replace(line, std::regex(remove), "");
+    } else {
+      line = std::regex_replace(line, std::regex("^\\s+"), "");
     }
 
     lines.push_back(line);
@@ -258,9 +264,11 @@ int main(int argc, char **argv) {
     std::smatch match;
     for (auto const& label : label_addresses) {
       if (std::regex_search(line, match, std::regex(label.first))) {
-        // line = std::regex_replace()
+        line = std::regex_replace(line, std::regex(label.first), label.second);
       }
     }
+
+    std::cout << line << std::endl;
     uint16_t instruction = assemble_chip8(line);
     output.put(instruction >> 8);
     output.put(instruction);

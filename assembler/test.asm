@@ -1,28 +1,24 @@
       CLS
-      LD V8, #4
-      LD DT, V8
-      LD V3, K
-      LD V1, #0
-      LD V2, #0
-      CALL #230
+      JP main
 
-main: LD V9, DT
-      SE V9, #0
-      JP #20E
+main: LD V3, K
+	    LD V1, #0
+	    LD V2, #0
+      CALL draw
       LD V3, K
       LD V1, #6
       LD V2, #0
-      CALL #230
+      CALL draw
       LD V3, K
       LD V1, #c
       LD V2, #0
-      CALL #230
+      CALL draw
       LD V3, K
       LD V1, #12
       LD V2, #0
-      CALL #230
-      LD V5, K
-      JP #200
-      LD F, V3
+      CALL draw
+      JP main
+
+draw: LD F, V3
       DRW V1, V2, #5
       RET

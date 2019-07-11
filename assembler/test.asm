@@ -5,6 +5,7 @@
       LD V1, #0
       LD V2, #0
       CALL #230
+
 main: LD V9, DT
       SE V9, #0
       JP #20E

@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <iterator>
 #include <map>
 #include <regex>
@@ -235,14 +236,18 @@ int main(int argc, char **argv) {
 
     if (isEmpty) continue;
 
-    std::regex re("(\\w+):");
+    std::regex re("(\\w+:)");
     std::smatch match;
     if (std::regex_search(line, match, re)) {
-      std::string label = std::string(match[1].begin(), match[1].end());
+      std::string label_match = match[1].str();
+      std::string label = label_match.substr(0, label_match.size()-1);
       label_addresses.insert({label, row + 0x200});
-      line = std::regex_replace(line, std::regex(label), "");
-      std::cout << "LABEL: " << label << std::endl;
-      std::cout << "LINE: " << line << std::endl;
+
+      std::stringstream ss;
+      ss << "^" << label_match << "\\s+";
+      std::string remove = ss.str();
+
+      line = std::regex_replace(line, std::regex(remove), "");
     }
 
     lines.push_back(line);
@@ -250,6 +255,12 @@ int main(int argc, char **argv) {
   }
 
   for (auto line : lines) {
+    std::smatch match;
+    for (auto const& label : label_addresses) {
+      if (std::regex_search(line, match, std::regex(label.first))) {
+        // line = std::regex_replace()
+      }
+    }
     uint16_t instruction = assemble_chip8(line);
     output.put(instruction >> 8);
     output.put(instruction);

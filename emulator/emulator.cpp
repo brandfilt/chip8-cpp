@@ -43,7 +43,7 @@ private:
 
 class Chip8 {
 public:
-  Chip8() : m_delay(60), m_sound(60) {
+  Chip8() : m_delay(10), m_sound(60) {
     m_memory = new unsigned char[1024 * 4 + 0x200]; // 4K memory reserved
     m_screen = &m_memory[0xF00];
     m_I = 0x00;
@@ -304,21 +304,14 @@ public:
 
       for (auto i = 0; i < n; i++) {
         uint8_t byte = m_memory[m_I + i];
-        uint8_t current_byte = m_screen[byte_position + i * SCREEN_WIDTH / 8];
-        m_screen[byte_position + i * SCREEN_WIDTH / 8] =
-            current_byte ^ (byte >> bit_offset);
+        m_screen[byte_position + i * SCREEN_WIDTH / 8] ^= (byte >> bit_offset);
 
         if (overflow_bit_offset > 0) {
-          uint8_t current_overflow_byte =
-              m_screen[overflow_byte_position + i * SCREEN_WIDTH / 8];
-          m_screen[overflow_byte_position + i * SCREEN_WIDTH / 8] =
-              current_overflow_byte ^ (byte << (8 - overflow_bit_offset));
+          m_screen[overflow_byte_position + i * SCREEN_WIDTH / 8] ^= (byte << (8 - overflow_bit_offset));
         }
 
         if (i == n) {
-          current_byte = m_screen[byte_position + i + 1];
-          m_screen[byte_position + i + 1] =
-              current_byte ^ (byte << (8 - bit_offset));
+          m_screen[byte_position + i + 1] ^= (byte << (8 - bit_offset));
         }
       }
 
@@ -337,7 +330,7 @@ public:
         m_PC += 2;
       } break;
       case 0xa1: {
-        // ExA1 - SKMP Vx
+        // ExA1 - SKNP Vx
         // Skip next instruction if key stored in Vx is not pressed
         uint8_t key = m_V[reg];
         // Add 2 to program counter to skip next instruction
@@ -396,15 +389,15 @@ public:
         /* Fx55 - LD [I], Vx
          * Store registers V0 to Vx in memory starting at location I.
          */
-        for (auto i = 0; i < reg; i++)
-          m_memory[m_I + i] = m_V[reg + i];
+        for (auto i = 0; i <= reg; i++)
+          m_memory[m_I + i] = m_V[i];
       } break;
       case 0x65: {
         /* Fx65 - LD Vx, [I]
          * Read registers V0 to Vx from memory starting at location I.
          */
-        for (auto i = 0; i < reg; i++)
-          m_V[reg + i] = m_memory[m_I + i];
+        for (auto i = 0; i <= reg; i++)
+          m_V[i] = m_memory[m_I + i];
       } break;
       }
       m_PC += 2;
@@ -413,6 +406,8 @@ public:
 
     m_delay.update();
     m_sound.update();
+
+    // std::cout << "DELAY: " << static_cast<int>(m_delay.value()) << std::endl;
   }
 
 private:

@@ -368,6 +368,9 @@ public:
         m_I = m_V[reg] + m_I;
       } break;
       case 0x29: {
+        /* Fx29 - LD F, Vx
+         * Set I to location of the sprite for digit stored in Vx
+         */
         m_I = 5 * m_V[reg];
       } break;
       case 0x33: {
@@ -406,8 +409,6 @@ public:
 
     m_delay.update();
     m_sound.update();
-
-    // std::cout << "DELAY: " << static_cast<int>(m_delay.value()) << std::endl;
   }
 
 private:

@@ -10,9 +10,14 @@
 #include "display.h"
 #include "keyboard.h"
 
+#include <nlohmann/json.hpp>
+
 #include "../disassembler/disassembler.h"
 
 const uint16_t CLOCK_SPEED_HZ = 500;
+const uint16_t SLOW_CLOCK_SPEED_HZ = 10;
+
+using json = nlohmann::json;
 
 class Timer {
 public:
@@ -26,10 +31,10 @@ public:
 
   void setValue(int value) { m_value = value; }
 
-  void update() {
+  void update(uint16_t clock_speed) {
     m_counter++;
 
-    if (m_counter >= m_frequency) {
+    if (m_counter >= m_frequency / clock_speed) {
       m_value = m_value > 0 ? --m_value : 0;
       m_counter = 0;
     }
@@ -43,7 +48,9 @@ private:
 
 class Chip8 {
 public:
-  Chip8() : m_delay(10), m_sound(60) {
+  Chip8()
+      : m_delay(60), m_sound(60), m_clock_speed(CLOCK_SPEED_HZ),
+        m_step_mode(false), m_step(false) {
     m_memory = new unsigned char[1024 * 4 + 0x200]; // 4K memory reserved
     m_screen = &m_memory[0xF00];
     m_I = 0x00;
@@ -104,6 +111,16 @@ public:
       m_display.update(m_screen);
       m_keyboard.pollEvents();
 
+      if (m_keyboard.keyDownEvent(SDLK_SPACE)) {
+        m_step = true;
+        // m_clock_speed = m_clock_speed == CLOCK_SPEED_HZ ? SLOW_CLOCK_SPEED_HZ
+        // : CLOCK_SPEED_HZ;
+      }
+
+      if (m_keyboard.keyDownEvent(SDLK_p)) {
+        m_step_mode = !m_step_mode;
+      }
+
       SDL_Event event;
       while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT)
@@ -115,8 +132,17 @@ public:
         //   m_display.print_debug(m_screen);
         // }
       }
-      SDL_Delay(1000 / CLOCK_SPEED_HZ);
+      SDL_Delay(1000 / m_clock_speed);
     }
+
+    // uint8_t m_V[16]; // Registers 0-F
+    // uint16_t m_I;    // Index register
+    // uint16_t m_SP;   // Stack pointer
+    // uint16_t m_PC;   // Program counter
+    json debug = {{"I", static_cast<int>(m_I)},
+                  {"SP", static_cast<int>(m_SP)},
+                  {"V0", static_cast<int>(m_V[0])}};
+    std::cout << debug << std::endl;
   }
 
   void init() { m_display.init(); }
@@ -125,17 +151,22 @@ public:
     if (!m_ready)
       return;
 
+    if (m_step_mode && !m_step)
+      return;
+
     // Fetch first 8 bits of next instruction
     uint8_t *op = &m_memory[m_PC];
 
     uint8_t firstbyte = op[0];
     uint8_t lastbyte = op[1];
 
-    // std::cout << std::hex << std::setfill('0') << std::setw(4) << m_PC << " "
+    // std::cout << std::hex << std::setfill('0') << std::setw(4) << m_PC << "
+    // "
     //           << std::setw(2) << static_cast<int>(firstbyte) << " "
     //           << std::setw(2) << static_cast<int>(lastbyte) << " ";
 
     // std::string command = disassemble(firstbyte, lastbyte);
+    // std::cout << std::hex << m_PC << " ";
     // std::cout << command << std::endl;
 
     int highnib = (*op & 0xf0) >> 4;
@@ -174,7 +205,8 @@ public:
       // Advance stack pointer
       m_SP -= 2;
 
-      // Store next instructions address to memory pointed by the stack pointer
+      // Store next instructions address to memory pointed by the stack
+      // pointer
       m_memory[m_SP] = ((m_PC + 2) & 0xff00) >> 8;
       m_memory[m_SP + 1] = ((m_PC + 2) & 0x00ff);
 
@@ -183,8 +215,10 @@ public:
       m_PC = target;
     } break;
     case 0x03: {
+      /* 3xkk - SE Vx, byte
+       */
       uint8_t reg = op[0] & 0x0f;
-      if (m_V[reg] == static_cast<int>(op[1]))
+      if (m_V[reg] == op[1])
         m_PC += 2;
       m_PC += 2;
     } break;
@@ -227,8 +261,10 @@ public:
         m_V[reg1] ^= m_V[reg2];
       } break;
       case 0x4: {
+        /* 8xy4 - ADD Vx, Vy
+         */
         uint16_t result = m_V[reg1] + m_V[reg2];
-        m_V[0xf] = (result & 0xff00) ? 1 : 0;
+        m_V[0xf] = (result > 0xff) ? 1 : 0;
         m_V[reg1] = result & 0xff;
       } break;
       case 0x5: {
@@ -275,18 +311,18 @@ public:
     } break;
     case 0x0d: {
       // Dxyn - DRW Vx, Vy, nibble
-      //   Display n-byte sprite starting at memory location I at (Vx, Vy), set
-      //   VF = collision.
+      //   Display n-byte sprite starting at memory location I at (Vx, Vy),
+      //   set VF = collision.
 
       //   The interpreter reads n bytes from memory, starting at the address
       //   stored in I. These bytes are then displayed as sprites on screen at
-      //   coordinates (Vx, Vy). Sprites are XORed onto the existing screen. If
-      //   this causes any pixels to be erased, VF is set to 1, otherwise it is
-      //   set to 0. If the sprite is positioned so part of it is outside the
-      //   coordinates of the display, it wraps around to the opposite side of
-      //   the screen. See instruction 8xy3 for more information on XOR, and
-      //   section 2.4, Display, for more information on the Chip-8 screen and
-      //   sprites.
+      //   coordinates (Vx, Vy). Sprites are XORed onto the existing screen.
+      //   If this causes any pixels to be erased, VF is set to 1, otherwise
+      //   it is set to 0. If the sprite is positioned so part of it is
+      //   outside the coordinates of the display, it wraps around to the
+      //   opposite side of the screen. See instruction 8xy3 for more
+      //   information on XOR, and section 2.4, Display, for more information
+      //   on the Chip-8 screen and sprites.
       uint8_t x_reg = op[0] & 0x0f;
       uint8_t y_reg = (op[1] >> 4) & 0x0f;
       uint8_t n = op[1] & 0x0f;
@@ -307,7 +343,8 @@ public:
         m_screen[byte_position + i * SCREEN_WIDTH / 8] ^= (byte >> bit_offset);
 
         if (overflow_bit_offset > 0) {
-          m_screen[overflow_byte_position + i * SCREEN_WIDTH / 8] ^= (byte << (8 - overflow_bit_offset));
+          m_screen[overflow_byte_position + i * SCREEN_WIDTH / 8] ^=
+              (byte << (8 - overflow_bit_offset));
         }
 
         if (i == n) {
@@ -407,8 +444,11 @@ public:
     } break;
     }
 
-    m_delay.update();
-    m_sound.update();
+    if (m_step_mode)
+      m_step = false;
+
+    m_delay.update(m_clock_speed);
+    m_sound.update(m_clock_speed);
   }
 
 private:
@@ -420,6 +460,10 @@ private:
   Timer m_sound;   // Sound timer
   uint8_t *m_memory;
   uint8_t *m_screen; // Same as memory[0xF00]
+
+  uint16_t m_clock_speed;
+  bool m_step_mode;
+  bool m_step;
 
   bool m_ready = false;
   bool m_quitting = false;

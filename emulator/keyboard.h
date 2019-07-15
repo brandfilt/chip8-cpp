@@ -77,7 +77,7 @@ private:
     case SDLK_f:
       return 0x0F;
     default:
-      return 0xFF;
+      return sym;
     }
   }
 };

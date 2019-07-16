@@ -140,8 +140,11 @@ public:
     // uint16_t m_SP;   // Stack pointer
     // uint16_t m_PC;   // Program counter
     json debug = {{"I", static_cast<int>(m_I)},
-                  {"SP", static_cast<int>(m_SP)},
-                  {"V0", static_cast<int>(m_V[0])}};
+                  {"SP", static_cast<int>(m_SP)}};
+
+    for (auto i = 0; i < 16; i++) {
+      debug.emplace("V" + std::to_string(i), static_cast<int>(m_V[i]));
+    }
     std::cout << debug << std::endl;
   }
 

@@ -135,10 +135,6 @@ public:
       SDL_Delay(1000 / m_clock_speed);
     }
 
-    // uint8_t m_V[16]; // Registers 0-F
-    // uint16_t m_I;    // Index register
-    // uint16_t m_SP;   // Stack pointer
-    // uint16_t m_PC;   // Program counter
     json debug = {{"I", static_cast<int>(m_I)},
                   {"SP", static_cast<int>(m_SP)}};
 

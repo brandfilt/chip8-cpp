@@ -113,8 +113,6 @@ public:
 
       if (m_keyboard.keyDownEvent(SDLK_SPACE)) {
         m_step = true;
-        // m_clock_speed = m_clock_speed == CLOCK_SPEED_HZ ? SLOW_CLOCK_SPEED_HZ
-        // : CLOCK_SPEED_HZ;
       }
 
       if (m_keyboard.keyDownEvent(SDLK_p)) {
@@ -125,12 +123,6 @@ public:
       while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT)
           m_quitting = true;
-        // if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_RIGHT)
-        // {
-        //   emulate();
-        //   m_display.update(m_screen);
-        //   m_display.print_debug(m_screen);
-        // }
       }
       SDL_Delay(1000 / m_clock_speed);
     }
@@ -141,6 +133,7 @@ public:
     for (auto i = 0; i < 16; i++) {
       debug.emplace("V" + std::to_string(i), static_cast<int>(m_V[i]));
     }
+
     std::cout << debug << std::endl;
   }
 

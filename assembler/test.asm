@@ -2,8 +2,8 @@
       JP main
 
 main: LD V3, K
-	    LD V1, #0
-	    LD V2, #0
+      LD V1, #0
+      LD V2, #0
       CALL draw
       LD V3, K
       LD V1, #6

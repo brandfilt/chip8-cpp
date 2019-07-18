@@ -127,6 +127,11 @@ public:
       SDL_Delay(1000 / m_clock_speed);
     }
 
+  }
+
+  void init() { m_display.init(); }
+
+  void print_debug() {
     json debug = {{"I", static_cast<int>(m_I)},
                   {"SP", static_cast<int>(m_SP)}};
 
@@ -136,8 +141,6 @@ public:
 
     std::cout << debug << std::endl;
   }
-
-  void init() { m_display.init(); }
 
   void emulate() {
     if (!m_ready)

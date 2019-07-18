@@ -3,3 +3,4 @@ disassembler/disassembler
 assembler/assembler
 emulator/emulator
 */build*
+tests/v_env/*

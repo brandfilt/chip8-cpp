@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 import pexpect
+import signal
 
 
 def test_call():
-    child = pexpect.spawn("../assembler/build/assembler call.asm call.bin")
-    child = pexpect.spawn("../emulator/build/bin/emulator call.bin")
-    child.expect("*DESTROY*")
+    pexpect.run("../assembler/build/assembler call.asm call.bin")
+    output = pexpect.run("../emulator/build/bin/emulator call.bin")
+    print(output)

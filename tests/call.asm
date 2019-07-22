@@ -1,4 +1,5 @@
         CALL test
-        exit
+        EXIT
 
-test:   exit
+test:   RET
+

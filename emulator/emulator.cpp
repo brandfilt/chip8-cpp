@@ -127,12 +127,15 @@ public:
       SDL_Delay(1000 / m_clock_speed);
     }
 
+    print_debug();
+
   }
 
   void init() { m_display.init(); }
 
   void print_debug() {
     json debug = {{"I", static_cast<int>(m_I)},
+                  {"PC", static_cast<int>(m_PC)},
                   {"SP", static_cast<int>(m_SP)}};
 
     for (auto i = 0; i < 16; i++) {

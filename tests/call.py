@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
-import pexpect
-import signal
-
 import re
 import json
 
+import pexpect
 
 def test_call():
     pexpect.run("../assembler/build/assembler call.asm call.bin")

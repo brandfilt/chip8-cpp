@@ -172,10 +172,13 @@ public:
     case 0x00:
       switch (lastbyte) {
       case 0xFD:
+        // EXIT
+        // Exits the program
         m_quitting = true;
         break;
       case 0xE0: {
         // CLS
+        // Clear the display
         int byte_count = SCREEN_WIDTH * SCREEN_HEIGHT / 8;
         for (auto i = 0; i < byte_count; i++) {
           m_screen[i] = 0;
@@ -184,6 +187,7 @@ public:
       }
       case 0xEE:
         // RET
+        // Return from subroutine
         m_PC = m_memory[m_SP] << 8 | m_memory[m_SP + 1];
         m_SP += 2;
         return;
@@ -191,13 +195,13 @@ public:
       m_PC += 2;
       break;
     case 0x01: {
-      // JUMP $NNN
+      // JUMP 1NNN
       // Jump to NNN
       uint16_t target = ((op[0] & 0x0f) << 8) | op[1];
       m_PC = target;
     } break;
     case 0x02: {
-      // CALL $NNN
+      // CALL 2NNN
       // Call subroutine at NNN
 
       // Advance stack pointer
@@ -213,20 +217,24 @@ public:
       m_PC = target;
     } break;
     case 0x03: {
-      /* 3xkk - SE Vx, byte
-       */
+      // 3xkk SE Vx, byte
+      // Skip next instructions if Vx = kk
       uint8_t reg = op[0] & 0x0f;
       if (m_V[reg] == op[1])
         m_PC += 2;
       m_PC += 2;
     } break;
     case 0x04: {
+      // 4xkk SNE Vx, byte
+      // Skip next instruction if Vx != kk
       uint8_t reg = op[0] & 0x0f;
       if (m_V[reg] != op[1])
         m_PC += 2;
       m_PC += 2;
     } break;
     case 0x05: {
+      // 5xy0 SE Vx, Vy
+      // Skip next instruction if Vx = Vy
       uint8_t reg1 = op[0] & 0x0f;
       uint8_t reg2 = (op[1] & 0xf0) >> 4;
       if (m_V[reg1] == m_V[reg2])
@@ -234,11 +242,15 @@ public:
       m_PC += 2;
     } break;
     case 0x06: {
+      // 6xkk LD Vx, byte
+      // Set Vx = kk
       uint8_t reg = op[0] & 0x0f;
       m_V[reg] = op[1];
       m_PC += 2;
     } break;
     case 0x07: {
+      // 7xkk ADD Vx, byte
+      // Set Vx = Vx + kk
       uint8_t reg = op[0] & 0x0f;
       m_V[reg] += op[1];
       m_PC += 2;
@@ -249,37 +261,63 @@ public:
       uint8_t reg2 = (op[1] & 0xf0) >> 4;
 
       switch (command) {
+      case 0x0: {
+        // 8xy0 LD Vx, Vy
+        // Set Vx = Vy
+        m_V[reg1] = m_V[reg2];
+      }
       case 0x1: {
+        // 8xy1 OR Vx, Vy
+        // Bitwise OR on Vx and Vy. The result is stored to Vx.
         m_V[reg1] |= m_V[reg2];
       } break;
       case 0x2: {
+        // 8xy1 AND Vx, Vy
+        // Bitwise AND on Vx and Vy. The result is stored to Vx.
         m_V[reg1] &= m_V[reg2];
       } break;
       case 0x3: {
+        // 8xy1 XOR Vx, Vy
+        // Bitwise XOR on Vx and Vy. The result is stored to Vx.
         m_V[reg1] ^= m_V[reg2];
       } break;
       case 0x4: {
-        /* 8xy4 - ADD Vx, Vy
-         */
+        // 8xy4 ADD Vx, Vy
+        // Set Vx = Vx + Vy, set VF = carry
+        //  Values of Vx and Vy are added together.
+        // If the result is > 255, VF is set to 1.
         uint16_t result = m_V[reg1] + m_V[reg2];
         m_V[0xf] = (result > 0xff) ? 1 : 0;
         m_V[reg1] = result & 0xff;
       } break;
       case 0x5: {
-        uint8_t result = m_V[reg1] - m_V[reg2];
-        m_V[0xf] = (result > 0) ? 1 : 0;
+        // 8xy5 SUB Vx, Vy
+        // Set Vx = Vx - Vy, set VF = NOT borrow
+        // If Vx > Vy, VF is set to 1.
+        uint8_t vx = m_V[reg1];
+        uint8_t vy = m_V[reg2];
+        uint8_t result = vx - vy;
+        m_V[0xf] = (vx > vy) ? 1 : 0;
         m_V[reg1] = result;
       } break;
       case 0x6: {
+        // 8xy6 SHR Vx {, Vy}
+        // Set Vx = Vx SHR 1
+        // If the least significant bit of Vx is 1, set VF to 1.
+        // Divide Vx by 2.
         m_V[0xf] = m_V[reg1] & 0x1;
         m_V[reg1] = m_V[reg1] >> 1;
       } break;
       case 0x7: {
-        uint8_t result = m_V[reg2] - m_V[reg1];
-        m_V[0xf] = (result > 0) ? 1 : 0;
-        m_V[reg1] = result;
+        // 8xy7 SUBN Vx, Vy
+        // Set Vx = Vx SHL 1
+        // If the most significant bit og Vx is 1, set VF to 1.
+        // Multiply Vx by 2;
+        m_V[0xf] = m_V[reg1] & 0x8;
+        m_V[reg1] = m_V[reg1] << 1;
       } break;
       case 0xe: {
+        // 8xyE
         m_V[0xf] = (0x80 == (m_V[reg1] & 0x80));
         m_V[reg1] = m_V[reg1] << 1;
       } break;

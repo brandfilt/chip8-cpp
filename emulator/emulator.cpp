@@ -310,15 +310,20 @@ public:
       } break;
       case 0x7: {
         // 8xy7 SUBN Vx, Vy
+        // Set Vx = Vy - Vx, set VF = NOT borrow
+        // If Vy > Vx, set VF 1.
+        uint8_t vx = m_V[reg1];
+        uint8_t vy = m_V[reg2];
+        uint8_t result = vx - vy;
+        m_V[0xf] = (vx < vy) ? 1 : 0;
+        m_V[reg1] = result;
+      } break;
+      case 0xe: {
+        // 8xyE SHL Vx {, Vy}
         // Set Vx = Vx SHL 1
         // If the most significant bit og Vx is 1, set VF to 1.
         // Multiply Vx by 2;
-        m_V[0xf] = m_V[reg1] & 0x8;
-        m_V[reg1] = m_V[reg1] << 1;
-      } break;
-      case 0xe: {
-        // 8xyE
-        m_V[0xf] = (0x80 == (m_V[reg1] & 0x80));
+        m_V[0xf] = (m_V[reg1] & 0x8) >> 8;
         m_V[reg1] = m_V[reg1] << 1;
       } break;
       }

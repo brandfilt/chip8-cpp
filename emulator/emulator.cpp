@@ -314,22 +314,24 @@ public:
         // If Vy > Vx, set VF 1.
         uint8_t vx = m_V[reg1];
         uint8_t vy = m_V[reg2];
-        uint8_t result = vx - vy;
+        uint8_t result = vy - vx;
         m_V[0xf] = (vx < vy) ? 1 : 0;
         m_V[reg1] = result;
       } break;
       case 0xe: {
         // 8xyE SHL Vx {, Vy}
         // Set Vx = Vx SHL 1
-        // If the most significant bit og Vx is 1, set VF to 1.
+        // If the most significant bit of Vx is 1, set VF to 1.
         // Multiply Vx by 2;
-        m_V[0xf] = (m_V[reg1] & 0x8) >> 8;
+        m_V[0xf] = (m_V[reg1] & 0x8) >> 7;
         m_V[reg1] = m_V[reg1] << 1;
       } break;
       }
       m_PC += 2;
     } break;
     case 0x09: {
+      // 9xy0 SNE Vx, Vy
+      // Skip next instruction if Vx != Vy
       uint8_t reg1 = op[0] & 0xf;
       uint8_t reg2 = (op[1] & 0xf0) >> 4;
       if (m_V[reg1] != m_V[reg2])
@@ -337,21 +339,27 @@ public:
       m_PC += 2;
     }
     case 0x0a: {
+      // Annn LD I, addr
+      // The value of the register I is set to nnn.
       m_I = ((op[0] & 0xf) << 8) | op[1];
       m_PC += 2;
     } break;
     case 0x0b: {
+      // Bnnn JP V0, addr
+      // Jump to location nnn + V0
       uint16_t num = ((op[0] & 0xf) << 8) | op[1];
       m_PC = m_V[0] + num;
     } break;
     case 0x0c: {
+      // Cxkk RND Vx, byte
+      // Set Vx = random byte AND kk
       uint8_t reg = op[0] & 0xf;
       uint8_t num = op[1];
-      m_V[reg] = (rand() % 256) + num;
+      m_V[reg] = (rand() % 256) & num;
       m_PC += 2;
     } break;
     case 0x0d: {
-      // Dxyn - DRW Vx, Vy, nibble
+      // Dxyn DRW Vx, Vy, nibble
       //   Display n-byte sprite starting at memory location I at (Vx, Vy),
       //   set VF = collision.
 
@@ -399,7 +407,7 @@ public:
       int reg = op[0] & 0xf;
       switch (op[1]) {
       case 0x9e: {
-        // Ex9E - SKP Vx
+        // Ex9E SKP Vx
         // Skip next instruction if key stored in Vx is pressed
         uint8_t key = m_V[reg];
         // Add 2 to program counter to skip next instruction
@@ -408,7 +416,7 @@ public:
         m_PC += 2;
       } break;
       case 0xa1: {
-        // ExA1 - SKNP Vx
+        // ExA1 SKNP Vx
         // Skip next instruction if key stored in Vx is not pressed
         uint8_t key = m_V[reg];
         // Add 2 to program counter to skip next instruction
@@ -422,11 +430,13 @@ public:
       int reg = op[0] & 0x0f;
       switch (op[1]) {
       case 0x07: {
+        // Fx07 LD Vx, DT
+        // Set Vx = the delay timer
         m_V[reg] = m_delay.value();
         // m_PC += 2;
       } break;
       case 0x0A: {
-        // Fx0A - LD Vx, K
+        // Fx0A LD Vx, K
         // Wait for key press, store value of the key in Vx
         // m_V[reg] = m_keyboard.waitKeyPress();
         if (!m_keyboard.anyKeyDownEvents()) {
@@ -437,25 +447,29 @@ public:
         }
       } break;
       case 0x15: {
+        // Fx15 LD DT, Vx
+        // Set delay timer = Vx
         m_delay.setValue(m_V[reg]);
       } break;
       case 0x18: {
+        // Fx18 LD ST, Vx
+        // Set sound timer = Vx
         m_sound = m_V[reg];
       } break;
       case 0x1e: {
+        // Fx1E ADD I, Vx
+        // Set I = I + Vx
         m_I = m_V[reg] + m_I;
       } break;
       case 0x29: {
-        /* Fx29 - LD F, Vx
-         * Set I to location of the sprite for digit stored in Vx
-         */
+        // Fx29 - LD F, Vx
+        // Set I to location of the sprite for digit stored in Vx
         m_I = 5 * m_V[reg];
       } break;
       case 0x33: {
-        /* Fx33 - LD B, Vx
-         * Store Binary Coded Decimal representation of Vx in memory
-         * locations I, I+1 and I+2.
-         */
+        // Fx33 - LD B, Vx
+        // Store Binary Coded Decimal representation of Vx in memory
+        // locations I, I+1 and I+2.
         uint8_t ones, tens, hundreds;
         uint8_t value = m_V[reg];
         ones = value % 10;
@@ -467,16 +481,14 @@ public:
         m_memory[m_I + 2] = ones;
       } break;
       case 0x55: {
-        /* Fx55 - LD [I], Vx
-         * Store registers V0 to Vx in memory starting at location I.
-         */
+        // Fx55 - LD [I], Vx
+        // Store registers V0 to Vx in memory starting at location I.
         for (auto i = 0; i <= reg; i++)
           m_memory[m_I + i] = m_V[i];
       } break;
       case 0x65: {
-        /* Fx65 - LD Vx, [I]
-         * Read registers V0 to Vx from memory starting at location I.
-         */
+        // Fx65 - LD Vx, [I]
+        // Read registers V0 to Vx from memory starting at location I.
         for (auto i = 0; i <= reg; i++)
           m_V[i] = m_memory[m_I + i];
       } break;

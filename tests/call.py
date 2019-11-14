@@ -1,13 +1,19 @@
 #!/usr/bin/env python
 
 import re
+import os
 import json
 
-import pexpect
+from util import run_asm
 
 def test_call():
-    pexpect.run("../assembler/build/assembler call.asm call.bin")
-    output = pexpect.run("../emulator/build/bin/emulator call.bin")
+    asm = """
+        CALL test
+        EXIT
+
+test:   EXIT
+    """
+    output = run_asm(asm)
     match = re.search(r"({[\w:,\"]+})", str(output))
     assert match != None
 

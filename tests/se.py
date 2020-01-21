@@ -9,7 +9,7 @@ import json
 
 from util import run_asm
 
-def test_call():
+def test_se_byte():
     asm = """
         LD V0, #1
         SE V0, #1
@@ -22,3 +22,19 @@ def test_call():
 
     emulator_debug = json.loads(match.group(1))
     assert emulator_debug.get("V0") == 1
+
+def test_se_register():
+    asm = """
+        LD V0, #1
+        LD V1, #1
+        LD V3, #1
+        SE V0, V1
+        LD V3, #2
+        EXIT
+    """
+    output = run_asm(asm)
+    match = re.search(r"({[\w:,\"]+})", str(output))
+    assert match != None
+
+    emulator_debug = json.loads(match.group(1))
+    assert emulator_debug.get("V3") == 1

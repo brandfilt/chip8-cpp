@@ -13,9 +13,5 @@ def test_call():
 
 test:   EXIT
     """
-    output = run_asm(asm)
-    match = re.search(r"({[\w:,\"]+})", str(output))
-    assert match != None
-
-    emulator_debug = json.loads(match.group(1))
+    emulator_debug = run_asm(asm)
     assert emulator_debug.get("PC") == 0x200 + 6

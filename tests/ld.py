@@ -18,11 +18,7 @@ def test_ld_byte():
         LD V0, #12
         EXIT
     """
-    output = run_asm(asm)
-    match = re.search(r"({[\w:,\"]+})", str(output))
-    assert match != None
-
-    emulator_debug = json.loads(match.group(1))
+    emulator_debug = run_asm(asm)
     assert emulator_debug.get("V0") == int("12", 16)
 
 def test_ld_register():
@@ -32,9 +28,5 @@ def test_ld_register():
         LD V0, V1
         EXIT
     """
-    output = run_asm(asm)
-    match = re.search(r"({[\w:,\"]+})", str(output))
-    assert match != None
-
-    emulator_debug = json.loads(match.group(1))
+    emulator_debug = run_asm(asm)
     assert emulator_debug.get("V0") == int("2", 16)

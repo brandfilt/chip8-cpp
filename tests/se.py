@@ -16,11 +16,7 @@ def test_se_byte():
         LD V0, #2
         EXIT
     """
-    output = run_asm(asm)
-    match = re.search(r"({[\w:,\"]+})", str(output))
-    assert match != None
-
-    emulator_debug = json.loads(match.group(1))
+    emulator_debug = run_asm(asm)
     assert emulator_debug.get("V0") == 1
 
 def test_se_register():
@@ -32,9 +28,5 @@ def test_se_register():
         LD V3, #2
         EXIT
     """
-    output = run_asm(asm)
-    match = re.search(r"({[\w:,\"]+})", str(output))
-    assert match != None
-
-    emulator_debug = json.loads(match.group(1))
+    emulator_debug = run_asm(asm)
     assert emulator_debug.get("V3") == 1

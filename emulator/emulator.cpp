@@ -20,6 +20,13 @@ const uint16_t CLOCK_SPEED_HZ = 500;
 
 using json = nlohmann::json;
 
+template<typename T>
+std::string int_to_hex(T i) {
+  std::stringstream stream;
+  stream << std::uppercase << std::hex << i;
+  return stream.str();
+}
+
 
 class Chip8 {
 public:
@@ -115,7 +122,7 @@ public:
                   {"SP", static_cast<int>(m_SP)}};
 
     for (auto i = 0; i < 16; i++) {
-      debug.emplace("V" + std::to_string(i), static_cast<int>(m_V[i]));
+      debug.emplace("V" + int_to_hex(i), static_cast<int>(m_V[i]));
     }
 
     std::cout << debug << std::endl;

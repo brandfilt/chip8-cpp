@@ -14,37 +14,12 @@
 
 #include "../disassembler/disassembler.h"
 
+#include "timer.h"
+
 const uint16_t CLOCK_SPEED_HZ = 500;
-const uint16_t SLOW_CLOCK_SPEED_HZ = 10;
 
 using json = nlohmann::json;
 
-class Timer {
-public:
-  Timer(int frequency) : m_frequency(frequency), m_counter(0), m_value(0) {}
-  Timer &operator=(uint8_t value) {
-    m_value = value;
-    return *this;
-  }
-
-  uint8_t value() const { return m_value; }
-
-  void setValue(int value) { m_value = value; }
-
-  void update(uint16_t clock_speed) {
-    m_counter++;
-
-    if (m_counter >= m_frequency / clock_speed) {
-      m_value = m_value > 0 ? --m_value : 0;
-      m_counter = 0;
-    }
-  }
-
-private:
-  int m_frequency;
-  int m_counter;
-  uint8_t m_value;
-};
 
 class Chip8 {
 public:
@@ -134,6 +109,7 @@ public:
   void init() { m_display.init(); }
 
   void print_debug() {
+
     json debug = {{"I", static_cast<int>(m_I)},
                   {"PC", static_cast<int>(m_PC)},
                   {"SP", static_cast<int>(m_SP)}};
@@ -157,15 +133,6 @@ public:
 
     uint8_t firstbyte = op[0];
     uint8_t lastbyte = op[1];
-
-    // std::cout << std::hex << std::setfill('0') << std::setw(4) << m_PC << "
-    // "
-    //           << std::setw(2) << static_cast<int>(firstbyte) << " "
-    //           << std::setw(2) << static_cast<int>(lastbyte) << " ";
-
-    // std::string command = disassemble(firstbyte, lastbyte);
-    // std::cout << std::hex << m_PC << " ";
-    // std::cout << command << std::endl;
 
     int highnib = (*op & 0xf0) >> 4;
     switch (highnib) {
@@ -197,7 +164,7 @@ public:
     case 0x01: {
       // JUMP 1NNN
       // Jump to NNN
-      uint16_t target = ((op[0] & 0x0f) << 8) | op[1];
+      uint16_t target = ((firstbyte & 0x0f) << 8) | lastbyte;
       m_PC = target;
     } break;
     case 0x02: {
@@ -213,30 +180,30 @@ public:
       m_memory[m_SP + 1] = ((m_PC + 2) & 0x00ff);
 
       // Jump to subroutines address NNN
-      uint16_t target = ((op[0] & 0xf) << 8) | op[1];
+      uint16_t target = ((firstbyte & 0xf) << 8) | lastbyte;
       m_PC = target;
     } break;
     case 0x03: {
       // 3xkk SE Vx, byte
       // Skip next instructions if Vx = kk
-      uint8_t reg = op[0] & 0x0f;
-      if (m_V[reg] == op[1])
+      uint8_t reg = firstbyte & 0x0f;
+      if (m_V[reg] == lastbyte)
         m_PC += 2;
       m_PC += 2;
     } break;
     case 0x04: {
       // 4xkk SNE Vx, byte
       // Skip next instruction if Vx != kk
-      uint8_t reg = op[0] & 0x0f;
-      if (m_V[reg] != op[1])
+      uint8_t reg = firstbyte & 0x0f;
+      if (m_V[reg] != lastbyte)
         m_PC += 2;
       m_PC += 2;
     } break;
     case 0x05: {
       // 5xy0 SE Vx, Vy
       // Skip next instruction if Vx = Vy
-      uint8_t reg1 = op[0] & 0x0f;
-      uint8_t reg2 = (op[1] & 0xf0) >> 4;
+      uint8_t reg1 = firstbyte & 0x0f;
+      uint8_t reg2 = (lastbyte & 0xf0) >> 4;
       if (m_V[reg1] == m_V[reg2])
         m_PC += 2;
       m_PC += 2;
@@ -244,21 +211,21 @@ public:
     case 0x06: {
       // 6xkk LD Vx, byte
       // Set Vx = kk
-      uint8_t reg = op[0] & 0x0f;
-      m_V[reg] = op[1];
+      uint8_t reg = firstbyte & 0x0f;
+      m_V[reg] = lastbyte;
       m_PC += 2;
     } break;
     case 0x07: {
       // 7xkk ADD Vx, byte
       // Set Vx = Vx + kk
-      uint8_t reg = op[0] & 0x0f;
-      m_V[reg] += op[1];
+      uint8_t reg = firstbyte & 0x0f;
+      m_V[reg] += lastbyte;
       m_PC += 2;
     } break;
     case 0x08: {
-      uint8_t command = op[1] & 0x0f;
-      uint8_t reg1 = op[0] & 0x0f;
-      uint8_t reg2 = (op[1] & 0xf0) >> 4;
+      uint8_t command = lastbyte & 0x0f;
+      uint8_t reg1 = firstbyte & 0x0f;
+      uint8_t reg2 = (lastbyte & 0xf0) >> 4;
 
       switch (command) {
       case 0x0: {
@@ -332,8 +299,8 @@ public:
     case 0x09: {
       // 9xy0 SNE Vx, Vy
       // Skip next instruction if Vx != Vy
-      uint8_t reg1 = op[0] & 0xf;
-      uint8_t reg2 = (op[1] & 0xf0) >> 4;
+      uint8_t reg1 = firstbyte & 0xf;
+      uint8_t reg2 = (lastbyte & 0xf0) >> 4;
       if (m_V[reg1] != m_V[reg2])
         m_PC += 2;
       m_PC += 2;
@@ -341,20 +308,20 @@ public:
     case 0x0a: {
       // Annn LD I, addr
       // The value of the register I is set to nnn.
-      m_I = ((op[0] & 0xf) << 8) | op[1];
+      m_I = ((firstbyte & 0xf) << 8) | lastbyte;
       m_PC += 2;
     } break;
     case 0x0b: {
       // Bnnn JP V0, addr
       // Jump to location nnn + V0
-      uint16_t num = ((op[0] & 0xf) << 8) | op[1];
+      uint16_t num = ((firstbyte & 0xf) << 8) | lastbyte;
       m_PC = m_V[0] + num;
     } break;
     case 0x0c: {
       // Cxkk RND Vx, byte
       // Set Vx = random byte AND kk
-      uint8_t reg = op[0] & 0xf;
-      uint8_t num = op[1];
+      uint8_t reg = firstbyte & 0xf;
+      uint8_t num = lastbyte;
       m_V[reg] = (rand() % 256) & num;
       m_PC += 2;
     } break;
@@ -372,9 +339,9 @@ public:
       //   opposite side of the screen. See instruction 8xy3 for more
       //   information on XOR, and section 2.4, Display, for more information
       //   on the Chip-8 screen and sprites.
-      uint8_t x_reg = op[0] & 0x0f;
-      uint8_t y_reg = (op[1] >> 4) & 0x0f;
-      uint8_t n = op[1] & 0x0f;
+      uint8_t x_reg = firstbyte & 0x0f;
+      uint8_t y_reg = (lastbyte >> 4) & 0x0f;
+      uint8_t n = lastbyte & 0x0f;
 
       uint8_t x = m_V[x_reg];
       uint8_t y = m_V[y_reg];
@@ -404,8 +371,8 @@ public:
       m_PC += 2;
     } break;
     case 0x0e: {
-      int reg = op[0] & 0xf;
-      switch (op[1]) {
+      int reg = firstbyte & 0xf;
+      switch (lastbyte) {
       case 0x9e: {
         // Ex9E SKP Vx
         // Skip next instruction if key stored in Vx is pressed
@@ -427,8 +394,8 @@ public:
       }
     } break;
     case 0x0f: {
-      int reg = op[0] & 0x0f;
-      switch (op[1]) {
+      int reg = firstbyte & 0x0f;
+      switch (lastbyte) {
       case 0x07: {
         // Fx07 LD Vx, DT
         // Set Vx = the delay timer

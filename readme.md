@@ -15,7 +15,22 @@ Conan and CMake are used for dependency management and building.
     cmake .
     make
     
-Buildign disassembler and assember is done similarly.
+Building disassembler and assember is done similarly.
+
+# Running the emulator
+
+The emulator executable takes the path to a Chip-8 ROM file as the only
+argument.
+
+    ./emulator INVADERS
+    
+The Chip-8 HEX keys are mapped to the corresponding characters A-F and 0-9.
+
+Step mode can be enabled by pressing P. In step mode the emulator only advances
+(reads next opcode) when the user presses SPACE.
+
+When the emulator exits, it prints a JSON with the values of index register,
+stack register, program counter and the registers V0-VF.
 
 # Screenshots
 

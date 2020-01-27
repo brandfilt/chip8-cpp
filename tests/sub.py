@@ -20,11 +20,10 @@ def test_sub_register():
 def test_sub_register_with_carry():
     asm = """
         LD V0, #f
-        LD V1, #a
+        LD V1, #1
         SUB V0, V1
         EXIT
     """
     emulator_debug = run_asm(asm)
-    print(emulator_debug)
-    assert emulator_debug.get("V0") == 1
+    assert emulator_debug.get("V0") == 14
     assert emulator_debug.get("VF") == 1

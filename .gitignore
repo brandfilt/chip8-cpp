@@ -5,3 +5,5 @@ emulator/emulator
 */build*
 tests/v_env/*
 *.bin
+roms/*
+tests/__pycache__

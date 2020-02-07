@@ -149,6 +149,8 @@ public:
         // EXIT
         // Exits the program
         m_quitting = true;
+        // Don't advance PC on exit.
+        m_PC -= 2;
         break;
       case 0xE0: {
         // CLS

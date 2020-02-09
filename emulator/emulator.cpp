@@ -363,9 +363,15 @@ public:
       int overflow_byte_position =
           (overflow_bit_position - overflow_bit_offset) / 8;
 
+      bool erased = false;
       for (auto i = 0; i < n; i++) {
+
+        int screen_byte_position = byte_position + i * SCREEN_WIDTH / 8;
+        uint8_t screen_byte = m_screen[screen_byte_position];
+        if ((screen_byte >> bit_offset) > 0) erased = true;
+
         uint8_t byte = m_memory[m_I + i];
-        m_screen[byte_position + i * SCREEN_WIDTH / 8] ^= (byte >> bit_offset);
+        m_screen[screen_byte_position] ^= (byte >> bit_offset);
 
         if (overflow_bit_offset > 0) {
           m_screen[overflow_byte_position + i * SCREEN_WIDTH / 8] ^=
@@ -376,6 +382,8 @@ public:
           m_screen[byte_position + i + 1] ^= (byte << (8 - bit_offset));
         }
       }
+
+      m_V[0xf] = erased ? 1 : 0;
 
       m_PC += 2;
     } break;
